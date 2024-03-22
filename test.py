@@ -40,3 +40,58 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+import streamlit as st
+import random
+
+# 初始化或获取游戏状态
+if 'game_state' not in st.session_state:
+    st.session_state.game_state = "start"
+if 'agent_card' not in st.session_state:
+    st.session_state.agent_card = random.choice(['A', 'K', 'Q'])
+if 'community_card' not in st.session_state:
+    st.session_state.community_card = random.choice(['A', 'K', 'Q'])
+if 'hand_card' not in st.session_state:
+    st.session_state.hand_card = random.choice(['A', 'K', 'Q'])
+
+st.header("Leduc Hold'em Poker")
+
+# 聊天侧边栏（示例，根据需要实现）
+with st.sidebar:
+    st.text_input("发送消息", key="chat_message")
+    if st.button("发送"):
+        # 这里实现发送消息的逻辑
+        pass
+
+# 游戏界面设计
+col1, col2, col3 = st.columns([1, 1, 1])
+
+with col1:
+    st.subheader("机器人手牌")
+    agent_score = 0  # 这里设置机器人初始积分
+    st.metric(label="机器人积分", value=agent_score)
+    st.image("back.jpg", caption="Agent手牌", width=100)
+
+with col2:
+    player_score = 0  # 这里设置玩家初始积分
+    st.metric(label="底池积分", value=player_score)
+    st.image("back.jpg", caption="公共牌", width=100)
+
+with col3:
+    st.subheader("玩家区域")
+    st.metric(label="玩家积分", value=player_score)
+    st.image(f"{st.session_state.hand_card}.jpg", width=100)
+
+action = st.radio("选择你的动作:", ("加注", "跟注", "弃牌"), key="player_action")
+
+if st.button("确认动作"):
+    # 根据玩家选择的动作更新游戏状态
+    st.session_state.game_state = "next_round"  # 举例更新状态，需要根据游戏逻辑调整
+    # 显示选择结果
+    st.write(f"你选择了：{action}")
+
+# 根据游戏状态决定是否显示机器人牌和下一步操作
+if st.session_state.game_state == "next_round":
+    # 这里可以根据实际游戏逻辑添加代码，比如显示机器人牌，判断胜负等
+    pass

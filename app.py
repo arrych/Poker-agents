@@ -20,9 +20,16 @@ def init():
     st.session_state.points = Points(20)
     st.session_state.porker = Porker()
 
+def new_game():
+    p = st.session_state.porker
+    p.LicensingCards() # 发牌
+    st.session_state.game_state = "start"
+    st.session_state.agent_card_name = p.AgentCardName
+    st.session_state.agent_card_id = p.AgentCardId
+    st.session_state.your_card_name = p.YourCardName
+    
 # 游戏初始化
 cards = ["SK", "HK", "SQ", "HQ", "SJ", "HJ"]
-player_score = 0
 agent_score = 0
 st.sidebar.header("聊天区域")
 #user_input = st.sidebar.text_input("与机器人聊天:", "")
