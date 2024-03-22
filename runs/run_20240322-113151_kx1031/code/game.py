@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 import agent
-import points
+
 
 def agentL_process_message(message):
     """处理来自聊天界面的消息，并返回一个响应。"""
@@ -15,11 +15,6 @@ def agentG_receive_message(message):
 def init():
     ''' 初始化游戏'''
     st.session_state.A1,st.session_state.A2,st.session_state.A3 = agent.getAgent()
-    st.session_state.round = 1
-    st.session_state.game = 1
-    st.session_state.points = Points(20)
-    st.session_state.porker = Porker()
-
 # 游戏初始化
 cards = ["SK", "HK", "SQ", "HQ", "SJ", "HJ"]
 player_score = 0
@@ -38,6 +33,8 @@ if st.button("重新开始!"):
 st.header("Leduc Hold'em Poker")
 
 col1, col2 ,col3= st.columns([1, 1, 1])
+
+
 
 with col1:
     st.subheader("玩家区域")

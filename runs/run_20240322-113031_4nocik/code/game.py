@@ -1,7 +1,7 @@
 import streamlit as st
 import random
 import agent
-import points
+
 
 def agentL_process_message(message):
     """处理来自聊天界面的消息，并返回一个响应。"""
@@ -15,11 +15,6 @@ def agentG_receive_message(message):
 def init():
     ''' 初始化游戏'''
     st.session_state.A1,st.session_state.A2,st.session_state.A3 = agent.getAgent()
-    st.session_state.round = 1
-    st.session_state.game = 1
-    st.session_state.points = Points(20)
-    st.session_state.porker = Porker()
-
 # 游戏初始化
 cards = ["SK", "HK", "SQ", "HQ", "SJ", "HJ"]
 player_score = 0
@@ -33,13 +28,30 @@ if st.sidebar.button("发送"):
 
 
 if st.button("重新开始!"):	
-    init()
+	init()
 # 游戏界面设计
 st.header("Leduc Hold'em Poker")
 
-col1, col2 ,col3= st.columns([1, 1, 1])
+col1, col2 ,col3= st.columns([1, 1,1])
 
 with col1:
+    st.subheader("机器人手牌")
+    st.metric(label="机器人积分", value=agent_score)
+    agent_card = random.choice(cards)
+    st.image("back.jpg", caption="Agent手牌", width=100)
+
+with col2:
+    # 显示牌
+    community_card = random.choice(cards)
+    
+    st.metric(label="底池积分", value=player_score)
+    if st.button("展示公共牌"):
+        st.image(f"{community_card}.jpg", width=100)
+    else:
+    	st.image("back.jpg", caption="公共牌", width=100)
+
+
+with col3:
     st.subheader("玩家区域")
     # 显示积分
     st.metric(label="玩家积分", value=player_score)
@@ -72,21 +84,6 @@ with col1:
         # 如果用户没有点击确认按钮，则不执行任何操作  
         pass  
 
-with col2:
-    # 显示牌
-    community_card = random.choice(cards)
-    
-    st.metric(label="底池积分", value=player_score)
-    if st.button("展示公共牌"):
-        st.image(f"{community_card}.jpg", width=100)
-    else:
-    	st.image("back.jpg", caption="公共牌", width=100)
-
-with col3:
-    st.subheader("机器人手牌")
-    st.metric(label="机器人积分", value=agent_score)
-    agent_card = random.choice(cards)
-    st.image("back.jpg", caption="Agent手牌", width=100)
     if st.button("摊牌"):
         st.image(f"{agent_card}.jpg", caption="机器人手牌", width=100)
         # 这里添加判定胜负的逻辑
