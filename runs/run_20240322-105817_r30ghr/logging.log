@@ -1,0 +1,14 @@
+2024-03-22 10:58:17.763 | INFO     | agentscope.models:read_model_configs:171 - Load configs for model wrapper: qwenMax
+2024-03-22 10:58:17.773 | INFO     | agentscope.utils.monitor:_create_monitor_table:341 - Init [monitor_metrics] as the monitor table
+2024-03-22 10:58:17.774 | INFO     | agentscope.utils.monitor:_create_monitor_table:342 - Init [monitor_metrics_quota_exceeded] as the monitor trigger
+2024-03-22 10:58:17.776 | INFO     | agentscope.utils.monitor:__init__:311 - SqliteMonitor initialization completed at [./runs/run_20240322-105817_r30ghr/agentscope.db]
+2024-03-22 10:58:17.804 | WARNING  | agentscope.models:_get_model_wrapper:80 - Model type [tongyi_chat] will be deprecated in future releases, please use [dashscope_chat] instead.
+2024-03-22 10:58:17.805 | INFO     | agentscope.models.model:__init__:239 - Initialize model [qwenMax]
+2024-03-22 10:58:17.947 | INFO     | agentscope.utils.monitor:register:362 - Register metric [qwen-max.prompt_tokens] to SqliteMonitor with unit [token] and quota [None]
+2024-03-22 10:58:17.952 | INFO     | agentscope.utils.monitor:register:362 - Register metric [qwen-max.completion_tokens] to SqliteMonitor with unit [token] and quota [None]
+2024-03-22 10:58:17.956 | INFO     | agentscope.utils.monitor:register:362 - Register metric [qwen-max.total_tokens] to SqliteMonitor with unit [token] and quota [None]
+2024-03-22 10:58:17.959 | WARNING  | agentscope.models:_get_model_wrapper:80 - Model type [tongyi_chat] will be deprecated in future releases, please use [dashscope_chat] instead.
+2024-03-22 10:58:17.959 | INFO     | agentscope.models.model:__init__:239 - Initialize model [qwenMax]
+agentA1: (拿到红桃Q,在Leduc Hold'em中属于较强的起手牌，由于目前只有一张手牌且游戏只有两轮，我需要根据agentA2给出的对手性格分析来制定策略。若对手较为激进，即使他们可能只是用较小的牌进行加注试图吓退我，考虑到Q牌的价值，我会选择跟注或加注以试探对手反应。但如果对手是保守型玩家，他们加注的可能性更大是基于较强的手牌。)
+
+-> action: 跟注，并等待agentA2的对手性格分析进一步指导后续行动。
