@@ -1,0 +1,13 @@
+2024-03-23 14:03:22.470 | INFO     | agentscope.models:read_model_configs:171 - Load configs for model wrapper: qwenMax
+2024-03-23 14:03:22.479 | INFO     | agentscope.utils.monitor:_create_monitor_table:341 - Init [monitor_metrics] as the monitor table
+2024-03-23 14:03:22.480 | INFO     | agentscope.utils.monitor:_create_monitor_table:342 - Init [monitor_metrics_quota_exceeded] as the monitor trigger
+2024-03-23 14:03:22.481 | INFO     | agentscope.utils.monitor:__init__:311 - SqliteMonitor initialization completed at [./runs/run_20240323-140321_zfzax5/agentscope.db]
+2024-03-23 14:03:22.901 | WARNING  | agentscope.models:_get_model_wrapper:80 - Model type [tongyi_chat] will be deprecated in future releases, please use [dashscope_chat] instead.
+2024-03-23 14:03:22.901 | INFO     | agentscope.models.model:__init__:239 - Initialize model [qwenMax]
+2024-03-23 14:03:22.905 | INFO     | agentscope.utils.monitor:register:362 - Register metric [qwen-max.prompt_tokens] to SqliteMonitor with unit [token] and quota [None]
+2024-03-23 14:03:22.909 | INFO     | agentscope.utils.monitor:register:362 - Register metric [qwen-max.completion_tokens] to SqliteMonitor with unit [token] and quota [None]
+2024-03-23 14:03:22.912 | INFO     | agentscope.utils.monitor:register:362 - Register metric [qwen-max.total_tokens] to SqliteMonitor with unit [token] and quota [None]
+2024-03-23 14:03:22.914 | WARNING  | agentscope.models:_get_model_wrapper:80 - Model type [tongyi_chat] will be deprecated in future releases, please use [dashscope_chat] instead.
+2024-03-23 14:03:22.916 | INFO     | agentscope.models.model:__init__:239 - Initialize model [qwenMax]
+2024-03-23 14:03:22.919 | WARNING  | agentscope.models:_get_model_wrapper:80 - Model type [tongyi_chat] will be deprecated in future releases, please use [dashscope_chat] instead.
+2024-03-23 14:03:22.919 | INFO     | agentscope.models.model:__init__:239 - Initialize model [qwenMax]
