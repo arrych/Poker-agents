@@ -61,9 +61,9 @@ class Points:
         self.User = self.UserOri
 
     def settlement(self, res: str):
-        if res == "Win":
+        if res == "Lose":
             self.UserWin()
-        elif res == "Lose":
+        elif res == "Win":
             self.AgentWin()
         else:
             self.Draw()

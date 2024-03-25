@@ -14,19 +14,16 @@ def agentL_process_message(message):
     res = st.session_state.A3(f'{message},[{st.session_state.recording}]') 
     return res['content'] if 'content' in res else '你说啥?我有点耳背,没听清楚,你再说一遍吧'
 
-def agentG_receive_message(message):
-    """将消息显示在游戏界面。这里可以根据需要进行扩展，比如改变游戏状态。"""
-    st.session_state.agentG_message = message
-
 def init():
     ''' 初始化游戏'''
-    st.session_state.A1,st.session_state.A2,st.session_state.A3 = agent.getAgent()
     st.session_state.game = 0
     st.session_state.points = Points(20)
     st.session_state.porker = Porker()
     st.session_state.game_state = "init"
     st.session_state.chat_history = []
-    st.session_state.recording = ''
+    st.session_state.recording = None
+    st.session_state['role_selected'] = False
+    st.session_state['selected_character'] = None
 
 def new_game():
     p = Porker()
@@ -114,7 +111,7 @@ def extract_action_from_text(text):
 actions = {"跟注": 0, "加注": 1, "弃牌": 2}
 
 def analyse(player_hand, community_card):
-    cards = ["黑桃K", "红桃K", "黑桃Q", "红桃Q", "黑桃J", "红桃J"]
+    cards = ["黑桃J", "红桃J", "黑桃Q", "红桃Q", "黑桃K", "红桃K"]
     remaining_cards = [
         card for card in cards if card not in [player_hand, community_card]
     ]
@@ -166,8 +163,8 @@ def compare_hands_in(player_hand, opponent_hand, community_card):
 
 # 比较两手牌的结果
 def compare_hands():
-    player_hand, opponent_hand, community_card = st.session_state.your_card_name,st.session_state.agent_card_name,st.session_state.community_card_name
-    compare_hands_in(player_hand, opponent_hand, community_card)
+    player_hand, opponent_hand, community_card = st.session_state.agent_card_name,st.session_state.your_card_name,st.session_state.community_card_name
+    return compare_hands_in(player_hand, opponent_hand, community_card)
 
 def agent_action(user_action: str):
     points = st.session_state.points
@@ -201,13 +198,64 @@ def agent_action(user_action: str):
 # 游戏界面设计
 st.header("Leduc Hold'em Poker")
 
-if st.button("重新开始!"):	
-    init()
-# 游戏初始化
 if 'game_state' not in st.session_state:
     init()
+# 定义人物信息
+characters = [
+    {"name": "胖虎", "avatar": "P.jpg", "personality": "激进","prompt": "你是一个十分激进的人,很喜欢赌博,在赢的概率不大时也会选择激进加注或者跟注,几乎不会选择弃牌.吓唬对手让其弃牌是你最得意的获胜方式.你是哆啦A梦里的胖虎."},
+    {"name": "小夫", "avatar": "F.jpg", "personality": "狡猾","prompt": "你是一个十分狡猾的人,很注重关注对手的性格来选择自己的策略.你没有固定的决策逻辑,对局途中也会随时考虑改变自己的游戏风格,灵活多变就是你的获胜方式,你是哆啦A梦里的小夫."},
+    {"name": "大雄", "avatar": "D.jpg", "personality": "保守","prompt": "你是一个十分保守的人,追求稳,只要有可能输你就不会加注,跟注的选择也会非常谨慎,一旦赢面不大就会及时弃牌.稳中求胜就是的获胜方式.你是哆啦A梦里的大雄."}
+]
 
-cards = ["SK", "HK", "SQ", "HQ", "SJ", "HJ"]
+# 首次访问页面或需要重置时初始化状态
+# 根据游戏状态显示按钮
+if st.session_state['role_selected']:
+    button_label = "重新开始!"
+else:
+    button_label = "开始游戏!"
+
+# 角色选择和显示逻辑
+if not st.session_state['role_selected']:
+    # 显示人物选择界面
+    st.sidebar.title("人物选择")
+    st.session_state['selected_character'] = st.sidebar.radio(
+        "请选择人物：", [character["name"] for character in characters]
+    )
+
+    # 显示选定人物的头像和姓名
+    for character in characters:
+        if character["name"] == st.session_state['selected_character']:
+            st.sidebar.image(character["avatar"], width=100)
+            st.sidebar.write("姓名：", character["name"])
+            st.sidebar.write("性格：", character["personality"])
+else:
+    # 如果游戏已经开始，显示已选择的角色信息
+    role = st.session_state['role']
+    st.sidebar.write("已选择的角色：")
+    st.sidebar.image(role["avatar"], width=100)
+    st.sidebar.write("姓名：", role["name"])
+    st.sidebar.write("性格：", role["personality"])
+
+# 游戏开始/重新开始按钮逻辑
+if st.sidebar.button(button_label):
+    if st.session_state['role_selected']:
+        # 如果游戏已开始，点击重新开始游戏
+        init()
+    else:
+        # 如果是初始开始游戏，设置角色选择状态为True
+        st.session_state['role_selected'] = True
+        selected_character = st.session_state['selected_character']
+        st.session_state['role'] = next((character for character in characters if character["name"] == selected_character), None)
+        st.session_state.A1,st.session_state.A2,st.session_state.A3 = agent.getAgent(st.session_state['role']['prompt'])
+        # 这里添加开始游戏后的代码逻辑
+    st.rerun()
+
+
+#if st.button("重新开始!"):	
+#    init()
+# 游戏初始化
+
+#cards = ["SK", "HK", "SQ", "HQ", "SJ", "HJ"]
 st.sidebar.header("聊天区域")
 #user_input = st.sidebar.text_input("与机器人聊天:", "")
 user_message = st.sidebar.text_input("与Agent聊天:", key="chat")
@@ -215,7 +263,7 @@ if st.sidebar.button("发送"):
     st.session_state.chat_history.append(f"你: {user_message}")
     response = agentL_process_message(user_message)
     # 将响应添加到聊天历史记录中  
-    agentG_receive_message(response)
+    #agentG_receive_message(response)
     st.session_state.chat_history.append(f"Agent: {response}")
 
 col1, col2 ,col3= st.columns([1, 1, 1])
@@ -223,14 +271,15 @@ col1, col2 ,col3= st.columns([1, 1, 1])
 button_container = st.empty()
 
 # 创建一个按钮
-clicked = button_container.button("新的对局!")
+if st.session_state['role_selected']:
+    clicked = button_container.button("新的对局!")
 
-# 如果按钮被点击，则清空容器
-if clicked:
-    button_container.empty()
-    new_game()
-else:
-    pass
+    # 如果按钮被点击，则清空容器
+    if clicked:
+        button_container.empty()
+        new_game()
+    else:
+        pass
 
 
 # st.title(st.session_state.game_state)
@@ -274,7 +323,7 @@ if st.session_state.game_state == 'start' or st.session_state.game_state == 'nex
                         st.error("游戏结束，请继续努力")
                 else:
                     button_container.empty()
-                    clicked = button_container.button("确认结果")
+                    confirmed = button_container.button("确认")
         else:  
             # 如果用户没有点击确认按钮，则不执行任何操作  
             pass  
