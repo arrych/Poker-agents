@@ -189,8 +189,8 @@ def agent_action(user_action: str):
         if st.session_state.round == 2:
             result = compare_hands()
             points.settlement(result)
-            st.session_state.A2(f"第{st.session_state.game}局第{st.session_state.round}轮,局结果对手:{result},积分情况:{points.record()}.")
-            result = f"对局结果：{result}"
+            st.session_state.A2(f"第{st.session_state.game}局第{st.session_state.round}轮,局结果:你{result},积分情况:{points.record()}.")
+            result = f"对局结果：Agent {result}"
             st.success(result)
             st.session_state.game_state = "next"
 
