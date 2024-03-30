@@ -19,20 +19,6 @@ agentscope.init(
     ]
 )
 
-#A1 = DialogAgent(
-#    name="agentA1",
-#    model_config_name="qwenMax",
-#    sys_prompt=prompt.agentA1)
-#
-#A2 = DialogAgent(
-#    name="agentA2",
-#    model_config_name="qwenMax",
-#    sys_prompt=prompt.agentA2)
-#
-#A3 = DialogAgent(
-#    name="agentA3",
-#    model_config_name="qwenMax",
-#    sys_prompt=prompt.agentA3)
 y = Msg(name="agentA2", content="最开始不了解对手,无法判断对方是保守还是激进")
 
 
