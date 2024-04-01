@@ -112,7 +112,7 @@ def agent_action(user_action: str):
             advise = f"{info}agentA2的建议:{st.session_state.A2(info).content}."
     else:
         analyse_str = analyse(st,st.session_state.agent_card_name, st.session_state.community_card_name)
-        advise = f'当前对手牌面分析:{analyse_str}.'
+        advise = f'当前牌面分析:{analyse_str}.'
     os = st.session_state.A1(advise).content
     action = extract_action_from_text(os)
     points.AgentAction(actions[action])

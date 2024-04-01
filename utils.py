@@ -66,14 +66,14 @@ def analyse(st,player_hand, community_card):
         result = compare_hands_in(player_hand, opponent_hand, community_card)
         results[result] += 1
         output_lines.append(
-            f"当对手手牌是: {opponent_hand}, 结局: {result}"
+            f"当对手手牌是: {opponent_hand}, 结局: 你{result}"
         )  # 将输出添加到列表中
 
     total_combinations = sum(results.values())
     for outcome in results:
         probability = results[outcome] / total_combinations
         output_lines.append(
-            f"{outcome} 的概率: {probability:.2f}"
+            f"你{outcome} 的概率: {probability:.2f}"
         )  # 将概率输出添加到列表中
 
     return "\n".join(output_lines)  # 使用换行符将列表中的字符串连接起来，并返回结果

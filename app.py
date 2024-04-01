@@ -121,7 +121,7 @@ if st.session_state.game_state == 'start' or st.session_state.game_state == 'nex
     
     # 添加一个切换按钮，并在按钮旁边显示当前状态
     st.session_state.perspective_eye = st.checkbox('透视眼')
-    st.session_state.mind_reading =  st.checkbox('读心术')
+    st.session_state.mind_reading =  st.checkbox('读心术(聊天区 粉色内容就是Agent的分析)')
 
 with col1: 
  col1_f()
@@ -138,5 +138,6 @@ for message in st.session_state.chat_history:
         # Agent的消息，靠左显示
         st.sidebar.markdown(f"<p style='text-align: left; color: green;'>{message}</p>", unsafe_allow_html=True)
     else:
+        message = message.replace('\n', '<br>')
         st.sidebar.markdown(f"<p style='text-align: left; color: pink;'>{message}</p>", unsafe_allow_html=True)
     
