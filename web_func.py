@@ -15,7 +15,7 @@ def agentL_process_message(message):
 def init():
     ''' 初始化游戏'''
     st.session_state.game = 0
-    st.session_state.points = Points(20)
+    st.session_state.points = Points(30)
     st.session_state.porker = Porker()
     st.session_state.game_state = "init"
     st.session_state.chat_history = []

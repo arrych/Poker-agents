@@ -110,18 +110,42 @@ if st.session_state.game_state == 'start' or st.session_state.game_state == 'nex
                     if points.User > points.Agent:
                         st.success("游戏结束，恭喜获得胜利")
                     else:
-                        st.error("游戏结束，请继续努力")
-                else:
-                    button_container.empty()
-                    confirmed = button_container.button("确认")
+                        st.error("游戏结束，你输了,请继续努力")
+                    init()
+                button_container.empty()
+                confirmed = button_container.button("确认")
         else:  
             # 如果用户没有点击确认按钮，则不执行任何操作  
             pass  
     feature_enabled = False
-    
     # 添加一个切换按钮，并在按钮旁边显示当前状态
-    st.session_state.perspective_eye = st.checkbox('透视眼')
-    st.session_state.mind_reading =  st.checkbox('读心术(聊天区 粉色内容就是Agent的分析)')
+    if 'perspective_eye' not in st.session_state:
+        st.session_state.perspective_eye = True  # 设置默认值为 True 或 False
+    
+    if 'mind_reading' not in st.session_state:
+        st.session_state.mind_reading = False  # 设置默认值为 True 或 False
+    
+    perspective_eye = st.checkbox('透视眼', value=st.session_state.perspective_eye)
+    mind_reading = st.checkbox('读心术(聊天区 粉色内容就是Agent的分析)', value=st.session_state.mind_reading)
+    
+    # 在每一轮结束时更新 session_state
+    st.session_state.perspective_eye = perspective_eye
+    st.session_state.mind_reading = mind_reading
+
+guilden_line = st.checkbox("展示游戏规则",value=True)
+
+if guilden_line:
+    st.markdown("""
+    <div class="hint" style="background-color: rgba(255, 255, 0, 0.15); padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffcc00;">
+        <p>🌟🌟 如果在游戏过程中发现问题或者有一些建议希望可以进行一下交流，我们会及时反馈。如果觉得不错点击一下小心心就更好啦啦!</p>
+        <p>1：这是一个两人对战游戏。一共6张牌，红桃/黑桃的J、Q、K</p>
+        <p>2: 游戏一共分为两轮,每轮都可以进行一次动作选择（加注、跟注、弃牌）。游戏开始每名玩家都会抽一张手牌，并在桌上在放置一张公用的牌。</p>
+        <p>3：第一轮只能看到自己的手牌,然后选择动作。第二轮展示公共牌，进行第二轮下注。最后结算积分进行下一局。</p>
+        <p>4：如果手牌与公共牌凑齐对子(比如手牌是黑桃J,公共牌是红桃J),则为最大牌；没有双方都没有凑成对子，则按点数比较大小。K>Q>J。</p>
+        <p>5：游戏开始前你可以选择不同性格的对手，会他们影响后续的动作决策；游戏过程中你可以与Agent进行聊天来刺探情报或者施加压力(让其弃牌)。</p>
+        <p>🌟 使用模型分析需要一点时间,请耐心等待,如果好奇Agent分析内容可以点击读心术来查看其内心独白。</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 with col1: 
  col1_f()
