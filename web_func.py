@@ -133,3 +133,23 @@ def agent_action(user_action: str):
             result = f"对局结果：Agent {result}"
             st.success(result)
             st.session_state.game_state = "next"
+    #st.success("A1 记忆大小: "+str(st.session_state.A1.memory.size()))
+    #st.success("A2 记忆大小: "+str(st.session_state.A2.memory.size()))
+    #st.success("A3 记忆大小: "+str(st.session_state.A3.memory.size()))
+    if st.session_state.game > 12:
+        st.session_state.A1.memory.delete(0)
+        st.session_state.A2.memory.delete(0)
+        st.session_state.A3.memory.delete(0)
+        
+
+def show_chat(st):
+    for message in st.session_state.chat_history:
+        if message.startswith("你:"):
+            # 用户的消息，靠右显示
+            st.sidebar.markdown(f"<p style='text-align: right; color: blue;'>{message}</p>", unsafe_allow_html=True)
+        elif message.startswith("Agent:"):
+            # Agent的消息，靠左显示
+            st.sidebar.markdown(f"<p style='text-align: left; color: green;'>{message}</p>", unsafe_allow_html=True)
+        else:
+            message = message.replace('\n', '<br>')
+            st.sidebar.markdown(f"<p style='text-align: left; color: pink;'>{message}</p>", unsafe_allow_html=True)
