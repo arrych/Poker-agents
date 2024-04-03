@@ -141,6 +141,26 @@ def agent_action(user_action: str):
         st.session_state.A2.memory.delete(0)
         st.session_state.A3.memory.delete(0)
         
+def show_chat2(st):
+    # 遍历聊天历史并显示每条消息
+    user = st.chat_message("human")
+    agent = st.chat_message("ai")
+    for message in st.session_state.chat_history:
+        if message.startswith("你:"):
+            # 用户的提取消息内容，去掉前缀
+            content = message[len("你:"):].strip()
+            user.write(content)
+            #st.chat_message(content, is_user=True, avatar_style={"background-color": "blue"})
+        elif message.startswith("Agent:"):
+            # Agent的消息，使用 `st.chat_message` 靠左显示，并将文本颜色设置为绿色
+            content = message[len("Agent:"):].strip()
+            agent.write(content)
+            #st.chat_message(content, is_user=False, avatar_style={"background-color": "green"})
+        else:
+            # 其他消息，默认为系统或第三方消息，使用粉色显示
+            content = message.replace('\n', '<br>')
+            agent.write(content)
+            #st.chat_message(content, is_user=False, avatar_style={"background-color": "pink"})
 
 def show_chat(st):
     for message in st.session_state.chat_history:

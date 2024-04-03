@@ -5,7 +5,12 @@ from points import Points
 from poker import Porker
 from prompt import rag,characters
 from utils import analyse,compare_hands,extract_action_from_text
-from web_func import init,new_game,col1_f,col2_f,col3_f,user_action,agent_action,user_action_info,agentL_process_message,show_chat
+from web_func import init,new_game,col1_f,col2_f,col3_f,user_action,agent_action,user_action_info,agentL_process_message,show_chat,show_chat2
+
+def wait_chat():
+    res = st.session_state.A4(f'speak')
+    res = res['content'] if 'content' in res else '等一下 让我想想'
+    st.sidebar.markdown(f"<p style='text-align: left; color: red;'>Agent: {res}</p>", unsafe_allow_html=True)
 
 def game1():
     # 游戏界面设计
@@ -83,12 +88,7 @@ def game1():
             new_game()
         else:
             pass
-    
-    def wait_chat():
-        st.session_state.A4()
-        res = st.session_state.A4(f'speak')
-        res = res['content'] if 'content' in res else '等一下 让我想想'
-        st.session_state.chat_history.append(f"Agent: {res}")
+    st.session_state.show_c = False 
     
     # st.title(st.session_state.game_state)
     if st.session_state.game_state == 'start' or st.session_state.game_state == 'next':
@@ -101,9 +101,10 @@ def game1():
         # 如果按钮被点击，则清空容器
         if confirmed:
             # 如果用户已经选择了动作并且点击了确认按钮  
-    
             execute_function = False
             if action is not None:  
+               
+                wait_chat() 
                 user_action(action)
     
                 # 清除用户选择，以便进行下一轮选择  
@@ -117,6 +118,7 @@ def game1():
                     if not points.IsValid():
                         if points.User > points.Agent:
                             st.success("游戏结束，恭喜获得胜利")
+                            st.balloons()
                         else:
                             st.error("游戏结束，你输了,请继续努力")
                         init()
@@ -125,7 +127,6 @@ def game1():
             else:  
                 # 如果用户没有点击确认按钮，则不执行任何操作  
                 pass  
-        feature_enabled = False
         # 添加一个切换按钮，并在按钮旁边显示当前状态
         if 'perspective_eye' not in st.session_state:
             st.session_state.perspective_eye = True  # 设置默认值为 True 或 False
@@ -133,17 +134,15 @@ def game1():
         if 'mind_reading' not in st.session_state:
             st.session_state.mind_reading = False  # 设置默认值为 True 或 False
         
-        perspective_eye = st.checkbox('透视眼', value=st.session_state.perspective_eye)
-        mind_reading = st.checkbox('读心术(聊天区 粉色内容就是Agent的分析)', value=st.session_state.mind_reading)
+        perspective_eye = st.toggle('透视眼', value=st.session_state.perspective_eye)
+        mind_reading = st.toggle('读心术(聊天区 粉色内容就是Agent的分析)', value=st.session_state.mind_reading)
         
         # 在每一轮结束时更新 session_state
         st.session_state.perspective_eye = perspective_eye
         st.session_state.mind_reading = mind_reading
     
-    guilden_line = st.checkbox("展示游戏规则",value=True)
     
-    if guilden_line:
-        st.markdown("""
+    st.expander("展示游戏规则").markdown("""
         <div class="hint" style="background-color: rgba(255, 255, 0, 0.15); padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffcc00;">
             <p>🌟🌟 如果在游戏过程中发现问题或者有一些建议希望可以进行一下交流，我们会及时反馈。如果觉得不错点击一下小心心就更好好啦!</p>
             <p>1：这是一个两人对战游戏。一共6张牌，红桃/黑桃的J、Q、K</p>

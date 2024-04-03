@@ -31,7 +31,7 @@ def render_game_page():
         game1()
     else:
         game2()
-    
+    st.divider()    
     if st.button("返回游戏选择主界面"):
         st.session_state.page = '选择界面'
         st.rerun()

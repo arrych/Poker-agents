@@ -38,7 +38,7 @@ def getAgent(prompt_str: str):
         model_config_name="qwenMax",
         sys_prompt=prompt.agentA3+f".你的性格是:{prompt_str},要好好根据你的性格风格来玩游戏")
     A4 = DialogAgent(
-        name="agentA3",
+        name="agentA4",
         model_config_name="qwenMax",
         sys_prompt=prompt.agentA4+f".你的性格是:{prompt_str},要好好根据你的性格风格来玩游戏")
     return A1,A2,A3,A4
