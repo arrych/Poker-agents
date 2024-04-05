@@ -142,6 +142,7 @@ def game1():
         st.session_state.mind_reading = mind_reading
     
     
+    st.divider()    
     st.expander("展示游戏规则").markdown("""
         <div class="hint" style="background-color: rgba(255, 255, 0, 0.15); padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffcc00;">
             <p>🌟🌟 如果在游戏过程中发现问题或者有一些建议希望可以进行一下交流，我们会及时反馈。如果觉得不错点击一下小心心就更好好啦!</p>
