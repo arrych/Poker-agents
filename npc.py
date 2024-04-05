@@ -1,5 +1,5 @@
 from agentscope.prompt import PromptEngine, PromptType
-from agent import CustomizedAgent
+from agent2 import CustomizedAgent
 
 act_tuple = tuple['跟注', '加注', '弃牌']
 

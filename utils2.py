@@ -8,7 +8,7 @@ class CardDeck:
         self.suits = ['hearts', 'diamonds', 'clubs', 'spades']
         self.ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
         self.deck = [(suit, rank) for suit in self.suits for rank in self.ranks]
-        self.drawn_cards = []
+        self.drawn_cards = []  # 抽了的牌
 
     def shuffle(self):
         random.shuffle(self.deck)

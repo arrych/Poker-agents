@@ -3,7 +3,7 @@ from typing import Dict
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
-from utils import Card, CardDeck
+from utils2 import Card, CardDeck
 
 pre_flop_round = 'pre_flop'
 flop_round = 'flop'
@@ -27,21 +27,20 @@ def check_cards(npc: Dict = None):
 
 def show_community_cards(layout: DeltaGenerator):
     cols = layout.columns(5)
-    check_cards()
-    round_index = round_steps.index(st.session_state.round)
+    # check_cards()
+    # round_index = round_steps.index(st.session_state.round)
+    cards = st.session_state.community_cards
     for i, col in enumerate(cols):
-        card = st.session_state.community_cards[i]
-        if (i < 3 and round_index > 0  # flop
-                or i == 3 and round_index > 1  # turn
-                or i == 4 and round_index > 2):  # river or show_hands
-            col.image(card.image_path)
+        if i < len(cards):
+            col.image(cards[i].image_path)
         else:
-            col.image(card.BACK_IMAGE_PATH)
+            col.image(Card.BACK_IMAGE_PATH)
 
 
 def show_hand_cards(layout: list[DeltaGenerator], npc):
-    check_cards(npc)
-    if st.session_state.round == show_hand_round:
+    # check_cards(npc)
+    # if st.session_state.round == show_hand_round:
+    if not True:
         layout[0].image(st.session_state.hand_cards[npc['name']][0].image_path)  # NPC手牌图片
         layout[1].image(st.session_state.hand_cards[npc['name']][1].image_path)  # NPC手牌图片
     else:
@@ -59,12 +58,11 @@ def show_game_round_step(layout: DeltaGenerator):
              , options=round_steps)
 
 
-def npc_act(npc: Dict, layout: DeltaGenerator):
+def npc_act(npc: Dict, layout: DeltaGenerator, rd):
     layout = layout.empty()
     # 自定义修改
-    rd = random.randint(0, 1)
     npc['bet_component'] = layout
-    if rd == 1:
+    if rd == 'raise':
         layout.metric(label="押注积分", value=f'25', delta='5')
     else:
         layout.metric(label="弃牌", value=f'X', delta='-20')   ##此时失去所有押注金额
@@ -77,12 +75,18 @@ def player_act(layout: DeltaGenerator):
     principal.metric(label="剩余积分", value=f'25', delta='')
 
 
-def show_button(layout: DeltaGenerator):
-    disabled = st.session_state.who_speak['name'] is not 'YOU'
-    if disabled:
-        label = '未轮到你'
-    else:
-        label = '确认选择'
-    if layout.button(key="player_action", label=label, disabled=disabled):
+def show_button(layout: DeltaGenerator, player_id):
+    disabled = player_id != 0
+    if layout.button(key="call", label='跟注', disabled=disabled):
+        st.session_state['continue'] = False
+        st.session_state.action = 'call'
+        st.rerun()
+    if layout.button(key="raise", label='加注', disabled=disabled):
+        st.session_state['continue'] = False
+        st.session_state.action = 'raise'
+        st.rerun()
+    if layout.button(key="fold", label='弃牌', disabled=disabled):
+        st.session_state['continue'] = False
+        st.session_state.action = 'fold'
         st.rerun()
 
