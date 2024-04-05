@@ -1,6 +1,7 @@
 import streamlit as st
 import re
 import agent
+import concurrent.futures
 from points import Points
 from poker import Porker
 from prompt import rag,characters
@@ -105,7 +106,9 @@ def game1():
             if action is not None:  
                
                 wait_chat() 
-                user_action(action)
+                #user_action(action)
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    executor.submit(user_action(action))  # 等待异步调用结果
     
                 # 清除用户选择，以便进行下一轮选择  
                 action = None  
