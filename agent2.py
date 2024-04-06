@@ -41,9 +41,11 @@ def select_next_one(agents: Sequence, rnd: int) -> AgentBase:
 
 class CustomizedAgent(AgentBase):
 
-    def __init__(self, name, sys_prompt, model_config_name):
+    def __init__(self, name, sys_prompt, model_config_name, num_actions):
         super().__init__(name, sys_prompt=sys_prompt, model_config_name=model_config_name, use_memory=True)
         self.engine = PromptEngine(self.model, prompt_type=PromptType.LIST)
+        self.use_raw = True
+        self.num_actions = num_actions
 
     def reply(self, x: dict = None) -> dict:
         # 将问题x（或者理解为用户提示）加入记忆
@@ -78,6 +80,20 @@ class CustomizedAgent(AgentBase):
             self.memory.add(msg_memory)
 
         return msg
+
+    # todo 将RandomAgent替换
+    @staticmethod
+    def step(state):
+        ''' Predict the action given the curent state in gerenerating training data.
+
+        Args:
+            state (dict): An dictionary that represents the current state
+
+        Returns:
+            action (int): The action predicted (randomly chosen) by the random agent
+        '''
+        # return np.random.choice(list(state['legal_actions'].keys()))
+        return 'check'
 
     def __call__(self, *args: Any, **kwargs: Any) -> dict:
         # 调用接口等待回复

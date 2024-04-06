@@ -3,7 +3,6 @@ import streamlit as st
 
 import rlcard
 from rlcard.games.limitholdem import PlayerStatus
-from rlcard.agents import RandomAgent
 from rlcard.utils import set_seed
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
 from rlcard.agents import RandomAgent
@@ -90,6 +89,7 @@ def game2():
 
     trajectories = [[] for _ in range(game_info.num_players)]
 
+    # todo 翻译日志
     trajectories[player_id].append(state_info)
     var1 = st.session_state['continue']
     st.write("round_counter: "+str(game_info.game.round_counter))
@@ -214,6 +214,7 @@ def init():
     # 需要定义玩家列表、奖池大小、游戏阶段等
     game_info = rlcard.make('limit-holdem', config={'game_num_players': 6})
     human_agent = HumanAgent(game_info.num_actions)
+    # todo 将RandomAgent替换
     agent_1 = RandomAgent(num_actions=game_info.num_actions)
     agent_2 = RandomAgent(num_actions=game_info.num_actions)
     agent_3 = RandomAgent(num_actions=game_info.num_actions)
