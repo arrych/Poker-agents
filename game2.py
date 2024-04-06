@@ -2,6 +2,7 @@
 import streamlit as st
 
 import rlcard
+from rlcard.games.limitholdem import PlayerStatus
 from rlcard.agents import RandomAgent
 from rlcard.utils import set_seed
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
@@ -43,7 +44,7 @@ NPC1~5，玩家依次发言，
 """
 
 # 假设的NPC数据
-player_list = st.session_state.player_list = [
+player_list = [
     {'name': 'YOU', 'avatar': 'assets/avatars/player.png'},
     {'name': 'NPC_1', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_2', 'avatar': 'assets/avatars/npc1.png'},
@@ -61,14 +62,11 @@ user_cards = st.session_state.community_cards = []
 card_deck = st.session_state.card_deck = CardDeck()
 # 奖池
 jackpot = st.session_state.jackpot = 0
-# 说话人
-who_speak = st.session_state.who_speak = player_list[5]
+
 
 # players = agentscope.init(
 #     model_configs="./config/model_configs.json"
 # )
-
-import streamlit as st
 
 
 def game2():
@@ -83,8 +81,8 @@ def game2():
 
     game_info = st.session_state.game_info
 
-    round_info = st.session_state.round_info
-    var = game_info.game.public_cards
+    round_info = game_info.game.round
+    st.session_state.jackpot = 0
     st.session_state.community_cards = convert_cards_list(game_info.game.public_cards)
     state_info = st.session_state.state
     player_id = st.session_state.player_id
@@ -105,9 +103,10 @@ def game2():
             st.session_state['continue'] = True
         else:
             # 机器人行动
-            st.session_state.action = game_info.agents[player_id].step(state_info)
+            action = game_info.agents[player_id].step(state_info)
+            st.session_state.action = game_info.actions[action]
             # action = 'fold'
-            step(game_info, state_info, player_id, st.session_state.action, trajectories)
+            step(game_info, state_info, player_id, action, trajectories)
 
     var2 = st.session_state.action
     var3 = player_id
@@ -115,84 +114,18 @@ def game2():
 
     # if player_id == 0 and not st.session_state['continue']:
     #     step(game_info, state_info, player_id, st.session_state.action, trajectories)
-
-    if game_info.is_over():
-        if st.button("新的一局!"):
-            new_game()
-        st.stop()
-
     if st.sidebar.button("重新开始!"):
         init()
+    if game_info.is_over():
+        payoffs = game_info.game.get_payoffs()
+        st.session_state.payoffs = st.session_state.payoffs + payoffs*2
+        var4 = st.session_state.payoffs
+        if st.button("新的一局!"):
+            new_game()
+
+        st.stop()
 
     st.rerun()
-
-
-    # # 准备阶段
-    # if st.session_state.game_phase == "pre-flop":
-    #     # 发5张公共牌，每个人发两张手牌
-    #     deal_community_cards(5)
-    #     deal_hand_cards_to_each_player(2)
-    #
-    #     # 展示NPC和玩家的手牌 - 可能需要调整展示方式，确保手牌暂时不被对方看见
-    #     show_hand_cards()
-    #
-    #     # 设置游戏阶段为"flop"
-    #     st.session_state.game_phase = "flop"
-    #     # 提示用户进行下一步操作
-    #     st.button("进入翻牌阶段", on_click=advance_game_phase)
-    #
-    # # 翻牌阶段
-    # elif st.session_state.game_phase == "flop":
-    #     # 翻前三张公共牌
-    #     show_community_cards(3)
-    #
-    #     # NPC1~5和玩家依次发言，这一阶段不允许弃牌
-    #     player_actions(allow_fold=False)
-    #
-    #     # 设置游戏阶段为"turn"
-    #     st.session_state.game_phase = "turn"
-    #     # 提示用户进行下一步操作
-    #     st.button("进入转牌阶段", on_click=advance_game_phase)
-    #
-    # # 转牌阶段
-    # elif st.session_state.game_phase == "turn":
-    #     # 翻第四张公共牌
-    #     show_community_card(4)
-    #
-    #     # NPC1~5和玩家依次发言
-    #     player_actions()
-    #
-    #     # 设置游戏阶段为"river"
-    #     st.session_state.game_phase = "river"
-    #     # 提示用户进行下一步操作
-    #     st.button("进入合牌阶段", on_click=advance_game_phase)
-    #
-    # # 合牌阶段
-    # elif st.session_state.game_phase == "river":
-    #     # 翻第五张公共牌
-    #     show_community_card(5)
-    #
-    #     # NPC1~5和玩家依次发言
-    #     player_actions()
-    #
-    #     # 设置游戏阶段为"showdown"
-    #     st.session_state.game_phase = "showdown"
-    #     # 提示用户进行下一步操作
-    #     st.button("进入展示手牌阶段", on_click=advance_game_phase)
-    #
-    # # 展示手牌阶段
-    # elif st.session_state.game_phase == "showdown":
-    #     # 展示所有玩家的手牌，决定赢家，清算积分
-    #     show_all_hand_cards()
-    #     decide_winner()
-    #     clear_points()
-    #
-    #     # 游戏结束，或准备下一轮
-    #     st.session_state.game_phase = "pre-flop"  # 重新设置为准备阶段，或根据需求调整
-    #     # 提示用户重新开始或结束游戏
-    #     st.button("开始新一轮游戏", on_click=reset_game)
-
-    # 第一块：NPC展示区
 
 
 def step(game_info, state_info, player_id, action, trajectories):
@@ -211,20 +144,26 @@ def step(game_info, state_info, player_id, action, trajectories):
 
 
 def show(game_info, state_info, rd, player_id, trajectories):
+    player = game_info.game.players[player_id]
     with st.sidebar:
         for i, npc in enumerate(player_list[1:]):  # 展示后五个NPC
             row = st.container(border=True)
             cols = row.columns(4)
             cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
-            round.show_hand_cards(cols[1:3], npc)
-            if i == player_id:
-                round.npc_act(npc, cols[3], rd)
+            if player.status == PlayerStatus.ALIVE:
+                round.show_hand_cards(cols[1:3], npc)
+                if i == player_id:
+                    round.npc_act(npc, cols[3], rd, player.in_chips*2)
+            else:
+                cols[1].image(st.session_state.user_cards[0].image_path)  # NPC手牌图片
+                cols[2].image(st.session_state.user_cards[1].image_path)  # NPC手牌图片
+                cols[3].metric(label="已弃牌", value=f'X', delta=f'0')
 
     canvas = st.columns(1)[0]
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
     canvas.subheader(
-        f"场上奖池累积至{st.session_state.jackpot}积分，现在轮到{st.session_state.who_speak['name']}行动……")  # 使用分隔线创建视觉上的行分隔
+        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
     row = canvas.container(border=True)
     row.caption("公共牌")
     round.show_community_cards(row)
@@ -248,6 +187,8 @@ def show(game_info, state_info, rd, player_id, trajectories):
     ability_menu.write('你的能力')
     ability_menu.toggle(label='读心术', key='read_mind')
     ability_menu.toggle(label='透视眼', key='see_through')
+    bet_statistic = player_cols[5]
+    round.player_act(bet_statistic, player.in_chips*2, st.session_state.payoffs[0])
     if st.session_state['continue']:
         legal_action = state_info['raw_legal_actions']
         with st.spinner('Please wait...'):
@@ -266,9 +207,6 @@ def show(game_info, state_info, rd, player_id, trajectories):
                     st.rerun()
             # st.session_state['continue'] = False
         st.stop()
-
-    bet_statistic = player_cols[5]
-    round.player_act(bet_statistic)
 
 
 def init():
@@ -291,6 +229,9 @@ def init():
     st.session_state['continue'] = False
     st.session_state.state, st.session_state.player_id = st.session_state.game_info.reset()
     st.session_state.jackpot = 0
+    st.session_state.payoffs = [20, 20, 20, 20, 20, 20]
+    # 说话人
+    st.session_state.who_speak = player_list[5]
     # st.session_state.recording = None
     # st.session_state['role_selected'] = False
     # st.session_state['selected_character'] = None

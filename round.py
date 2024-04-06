@@ -58,21 +58,25 @@ def show_game_round_step(layout: DeltaGenerator):
              , options=round_steps)
 
 
-def npc_act(npc: Dict, layout: DeltaGenerator, rd):
+def npc_act(npc: Dict, layout: DeltaGenerator, rd, point):
     layout = layout.empty()
     # 自定义修改
     npc['bet_component'] = layout
     if rd == 'raise':
-        layout.metric(label="押注积分", value=f'25', delta='5')
+        layout.metric(label="押注积分", value=f'{point}', delta='5')
+    elif rd == 'check':
+        layout.metric(label="过牌", value=f'{point}', delta='0')
+    elif rd == 'call':
+        layout.metric(label="跟注", value=f'{point}', delta='0')
     else:
-        layout.metric(label="弃牌", value=f'X', delta='-20')   ##此时失去所有押注金额
+        layout.metric(label="弃牌", value=f'X', delta=f'-{point}')   ##此时失去所有押注金额
 
 
-def player_act(layout: DeltaGenerator):
+def player_act(layout: DeltaGenerator, point, all_point):
     bet = layout.container()
-    bet.metric(label="押注积分", value=f'25', delta='')
+    bet.metric(label="押注积分", value=f'{point}', delta='')
     principal = layout.container()
-    principal.metric(label="剩余积分", value=f'25', delta='')
+    principal.metric(label="剩余积分", value=f'{all_point-point}', delta='')
 
 
 def show_button(layout: DeltaGenerator, player_id):
