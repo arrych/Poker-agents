@@ -140,7 +140,7 @@ def step(game_info, state_info, player_id, action, trajectories):
     if not game_info.game.is_over():
         trajectories[player_id].append(state_info)
 
-
+@st.cache_data
 def show(game_info, state_info, player_id, trajectories):
     with st.sidebar:
         for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
