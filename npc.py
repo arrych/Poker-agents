@@ -62,8 +62,8 @@ class Npc(CustomizedAgent):
         # return np.random.choice(list(state['legal_actions'].keys()))
         res = self.shadows_negotiate(state)
         ## todo 这里是对别的NPC玩家进行回答的地方，需要修改格式
-        self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}')) ## 将本次动作广播给所有听众
-        return  res
+        self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}'))  ## 将本次动作广播给所有听众
+        return res
 
     def _broadcast_to_audience(self, x: dict) -> None:
         """Broadcast the input to all audiences."""
@@ -73,7 +73,6 @@ class Npc(CustomizedAgent):
         ## Msg(name=self.name, content='自定义消息')
         for agent in self.shadows:
             agent.observe(x)
-
 
     def shadows_negotiate(self, state):
         state = state['raw_obs']
@@ -97,7 +96,7 @@ class Npc(CustomizedAgent):
                     except JSONDecodeError:
                         for audience in self.shadows:
                             audience.forget_last_answer()
-        return self.randomAgent.step(state)
+        return 'raise'
 
 
 class Player(Npc):

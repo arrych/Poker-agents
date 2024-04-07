@@ -41,7 +41,7 @@ NPC1~5，玩家依次发言，
 
 # 假设的NPC数据
 player_list = [
-    {'name': 'YOU', 'avatar': 'assets/avatars/player.png'},
+    {'name': 'PLAYER', 'avatar': 'assets/avatars/player.png'},
     {'name': 'NPC_1', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_2', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_3', 'avatar': 'assets/avatars/npc1.png'},
@@ -223,8 +223,8 @@ def init():
     agentscope.init(
         model_configs="./config/model_configs.json"
     )
-    st.session_state.player = Player(name=player_list[1]['name'],
-                    avatar=player_list[1]['avatar'],
+    st.session_state.player = Player(name=player_list[0]['name'],
+                    avatar=player_list[0]['avatar'],
                     num_actions=game_info.num_actions)
     agent_1 = Npc(name=player_list[1]['name'],
                   avatar=player_list[1]['avatar'],
