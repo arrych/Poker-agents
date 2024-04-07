@@ -223,7 +223,7 @@ def init():
     agentscope.init(
         model_configs="./config/model_configs.json"
     )
-    st.session_state.player = Player(name=player_list[0]['name'],
+    player = st.session_state.player = Player(name=player_list[0]['name'],
                     avatar=player_list[0]['avatar'],
                     num_actions=game_info.num_actions)
     agent_1 = Npc(name=player_list[1]['name'],
@@ -241,7 +241,7 @@ def init():
     agent_5 = Npc(name=player_list[5]['name'],
                   avatar=player_list[5]['avatar'],
                   num_actions=game_info.num_actions)
-    set_audiences(participants=[agent_1, agent_2, agent_3, agent_4, agent_5])
+    set_audiences(participants=[player, agent_1, agent_2, agent_3, agent_4, agent_5])
     game_info.set_agents([
         human_agent,
         agent_1, agent_2, agent_3, agent_4, agent_5
