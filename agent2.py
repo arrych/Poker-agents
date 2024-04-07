@@ -1,6 +1,6 @@
 import re
 import time
-from typing import Any, Sequence
+from typing import Any, Sequence, Union
 
 from agentscope import msghub
 
@@ -10,7 +10,7 @@ from agentscope.message import Msg
 
 from agentscope.prompt import PromptEngine, PromptType
 
-from agentscope.agents import AgentBase, UserAgent
+from agentscope.agents import AgentBase, UserAgent, DictDialogAgent
 
 
 def filter_agents(string: str, agents: Sequence) -> Sequence:
@@ -46,6 +46,12 @@ class CustomizedAgent(AgentBase):
         self.engine = PromptEngine(self.model, prompt_type=PromptType.LIST)
         self.use_raw = True
         self.num_actions = num_actions
+
+    def _broadcast_to_audience(self, x: dict) -> None:
+        """Broadcast the input to all audiences which includes myself."""
+        for agent in self._audience:
+            if agent is not self:
+                agent.observe(x)
 
     def reply(self, x: dict = None) -> dict:
         # 将问题x（或者理解为用户提示）加入记忆
@@ -113,6 +119,22 @@ class CustomizedAgent(AgentBase):
         last_chat_point = self.find_latest_chat_round_idx(1)
         self.memory.delete(list(range(last_chat_point, len(memory))))
 
+    def remember_last_chat_round(self):
+        memory = self.memory.get_memory()
+        if memory is None or len(memory) < 1:
+            return
+        last_chat_point = self.find_latest_chat_round_idx(1)
+        return memory[last_chat_point, len(memory)]
+
+    def notice(self, memories: Union[Sequence[dict], dict, None]):
+        self.memory.add(memories)
+
+    def forget_last_answer(self):
+        memory = self.memory.get_memory()
+        if memory is None or len(memory) < 1:
+            return
+        self.memory.delete(len(memory))
+
     # 删除所有记忆
     def flush_memory(self):
         if self.memory is not None:
@@ -138,6 +160,7 @@ class CustomizedAgent(AgentBase):
             if chat_log["name"] == self.name:
                 count -= 1
         return last_chat_point
+
 
 
 if __name__ == "__main__":

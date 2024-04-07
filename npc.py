@@ -1,18 +1,41 @@
-import random
+import json
+import re
+from json import JSONDecodeError
+import streamlit as st
+from typing import Sequence
 
 import prompt2
 import round
+from agent2_rule import LimitholdemRuleAgentV1
+from agentscope import msghub
+from agentscope.agents import AgentBase
 from agentscope.message import Msg
 from agentscope.prompt import PromptEngine, PromptType
 from agent2 import CustomizedAgent
 
 act_tuple = tuple['跟注', '加注', '弃牌']
-MAX_NEGOTIATE_ROUNDS = 5
+MAX_NEGOTIATE_ROUNDS = 3
+
+
+def set_audiences(participants: Sequence[AgentBase]):
+    """Reset the audience for agent in `self.participant`"""
+    for agent in participants:
+        agent.reset_audience(participants)
+
+
+def find_first_json(text):
+    # 匹配JSON对象或数组
+    pattern = r'({.*?})|(\[.*?\])'
+    match = re.search(pattern, text, re.DOTALL)
+    if match:
+        return match.group()
+    else:
+        return text
 
 
 class Npc(CustomizedAgent):
 
-    def __init__(self, name, avatar, sys_prompt, model_config_name, num_actions, principal=100):
+    def __init__(self, name, avatar, num_actions, sys_prompt="", model_config_name='qwen_config', principal=100):
         super().__init__(name, sys_prompt=sys_prompt, model_config_name=model_config_name, num_actions=num_actions)
         self.engine = PromptEngine(self.model, prompt_type=PromptType.LIST)
         self.num_actions = num_actions
@@ -22,6 +45,7 @@ class Npc(CustomizedAgent):
         self.act = None
         self.bet = 0
         self.shadows = []
+        self.randomAgent = LimitholdemRuleAgentV1()
         for prompt in prompt2.shadow_assistants:
             self.shadows.append(CustomizedAgent(prompt['name'], prompt['sys_prompt'], model_config_name, num_actions))
 
@@ -35,11 +59,44 @@ class Npc(CustomizedAgent):
             action (int): The action predicted (randomly chosen) by the random agent
         """
         # return np.random.choice(list(state['legal_actions'].keys()))
-        self.shadows_negotiate(state)
-        return 'check'
+        res = self.shadows_negotiate(state)
+        self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}')) ## 将本次动作广播给所有听众
+        return  res
+
+    def _broadcast_to_audience(self, x: dict) -> None:
+        """Broadcast the input to all audiences."""
+        super()._broadcast_to_audience(x)
+        """Broadcast the input to all shadows."""
+        ## Msg(name=self.name, content='自定义消息')
+        for agent in self.shadows:
+            agent.observe(x)
+
 
     def shadows_negotiate(self, state):
-        print(state)
-        x = Msg('player', content=prompt2.negotiate_announcement[round.round_steps[0]])
-        # forlooppipeline(self, random.choice([MAX_NEGOTIATE_ROUNDS,MAX_NEGOTIATE_ROUNDS+1]),)
+        state = state['raw_obs']
+        hand = state['hand']
+        public_cards = state['public_cards']
+        round_info = round.pre_flop_round  ##对局阶段
+        if st.session_state['round_info'] is not None:
+            round_info = st.session_state.round_info
+        with msghub(participants=self.shadows, announcement=prompt2.negotiate_announcement.format(round_info)):
+            for i in range(MAX_NEGOTIATE_ROUNDS):
+                for agent in self.shadows:
+                    ## Msg(name=self.name, content='自定义消息')
+                    msg = agent()
+                    try:
+                        res = json.loads(find_first_json(msg.content))
+                        if res['agreement'] is True:
+                            return res['action']
+                    except JSONDecodeError:
+                        for audience in self.shadows:
+                            audience.forget_last_answer()
+        return self.randomAgent.step(state)
 
+
+class Player(Npc):
+    def __init__(self, name, avatar, num_actions):
+        super().__init__(name, avatar, num_actions)
+
+    def step(self, step):
+        self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{step}'))

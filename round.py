@@ -48,10 +48,10 @@ def show_game_round_step(layout: DeltaGenerator):
     if 'round' not in st.session_state:
         st.session_state.round = pre_flop_round
     layout.radio("当前的游戏阶段："
-             , index=round_steps.index(st.session_state.round)
-             , horizontal=True
-             , disabled=True
-             , options=round_steps)
+                 , index=round_steps.index(st.session_state.round)
+                 , horizontal=True
+                 , disabled=True
+                 , options=round_steps)
 
 
 def npc_act(npc: Dict, layout: DeltaGenerator, rd, point):
@@ -65,14 +65,14 @@ def npc_act(npc: Dict, layout: DeltaGenerator, rd, point):
     elif rd == 'call':
         layout.metric(label="跟注", value=f'{point}', delta='0')
     else:
-        layout.metric(label="弃牌", value=f'X', delta=f'-{point}')   ##此时失去所有押注金额
+        layout.metric(label="弃牌", value=f'X', delta=f'-{point}')  ##此时失去所有押注金额
 
 
 def player_act(layout: DeltaGenerator, point, all_point):
     bet = layout.container()
     bet.metric(label="押注积分", value=f'{point}', delta='')
     principal = layout.container()
-    principal.metric(label="剩余积分", value=f'{all_point-point}', delta='')
+    principal.metric(label="剩余积分", value=f'{all_point - point}', delta='')
 
 
 def show_button(layout: DeltaGenerator, player_id):
@@ -89,4 +89,3 @@ def show_button(layout: DeltaGenerator, player_id):
         st.session_state['continue'] = False
         st.session_state.action = 'fold'
         st.rerun()
-

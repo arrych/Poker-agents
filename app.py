@@ -17,10 +17,6 @@ games_info = {
     }
 }
 
-players = agentscope.init(
-    model_configs="./config/model_configs.json"
-)
-
 # 初始化会话状态
 if 'page' not in st.session_state:
     st.session_state.page = '选择界面'

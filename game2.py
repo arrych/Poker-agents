@@ -1,26 +1,14 @@
-
 import streamlit as st
 
 import rlcard
-from rlcard.games.limitholdem import PlayerStatus
-from rlcard.utils import set_seed
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
-#from rlcard.agents.nfsp_agent import NFSPAgent
-#from rlcard.agents.dqn_agent import DQNAgent
-#from rlcard.agents.cfr_agent import CFRAgent
-#from rlcard.agents.random_agent import RandomAgent
+
+import agentscope
+import prompt2
 from agent2_rule import LimitholdemRuleAgentV1
 from agent2_rule import RandomAgent
-from rlcard.agents.pettingzoo_agents import NFSPAgentPettingZoo
-import torch
-
-from rlcard.games.limitholdem.game import LimitHoldemGame
-from rlcard.utils.utils import print_card
-import agentscope
 from agentscope import msghub
-from npc import Npc
-from points import Points
-from poker import Porker
+from npc import Npc, set_audiences, Player
 from utils2 import CardDeck, Card, BackCard
 import round
 import time
@@ -75,7 +63,6 @@ jackpot = st.session_state.jackpot = 0
 
 
 def game2():
-
     st.session_state.round = round.show_hand_round  # 控制阶段
     # 初始化session_state
 
@@ -97,9 +84,9 @@ def game2():
 
     # todo 翻译日志
     trajectories[player_id].append(state_info)
-    #var1 = st.session_state['continue']
+    # var1 = st.session_state['continue']
     # st.write(state_info)
-    #st.write("player_id:" + str(player_id))
+    # st.write("player_id:" + str(player_id))
     st.session_state.action = 'check'
     st.session_state.hand_cards[0] = convert_cards_list(game_info.game.players[0].hand)
     if not game_info.is_over() and not st.session_state['continue']:
@@ -109,14 +96,14 @@ def game2():
         else:
             # 机器人行动
             action = game_info.agents[player_id].step(state_info)
-            #st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
+            # st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
             # todo 了解action为什么会越界 是不是应该取所有的action
             st.session_state.action = action
-            #st.session_state.action = game_info.actions[action]
+            # st.session_state.action = game_info.actions[action]
             player = game_info.game.players[player_id]
             step(game_info, state_info, player_id, action, trajectories)
-            st.session_state.agent_actions[player_id-1] = [st.session_state.action, player.in_chips*2]
-            #st.write(f"players_action: {st.session_state.agent_actions}")
+            st.session_state.agent_actions[player_id - 1] = [st.session_state.action, player.in_chips * 2]
+            # st.write(f"players_action: {st.session_state.agent_actions}")
             st.session_state.hand_cards[player_id] = convert_cards_list(player.hand)
 
     var2 = st.session_state.action
@@ -129,13 +116,13 @@ def game2():
     #     step(game_info, state_info, player_id, st.session_state.action, trajectories)
     if game_info.is_over():
         payoffs = game_info.game.get_payoffs()
-        st.session_state.payoffs = st.session_state.payoffs + payoffs*2
+        st.session_state.payoffs = st.session_state.payoffs + payoffs * 2
         if payoffs[0] > 0:
-            st.success(f'You win {payoffs[0]*2} chips!')
+            st.success(f'You win {payoffs[0] * 2} chips!')
         elif payoffs[0] == 0:
             st.info('It is a tie.')
         else:
-            st.error(f'You lose {-payoffs[0]*2} chips!')
+            st.error(f'You lose {-payoffs[0] * 2} chips!')
         if st.button("新的一局!"):
             new_game()
             st.rerun()
@@ -146,6 +133,8 @@ def game2():
 
 
 def step(game_info, state_info, player_id, action, trajectories):
+    # 用户消息广播
+    st.session_state.player.step(action)
     # Environment steps
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
@@ -182,7 +171,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
     canvas.subheader(
-        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
+        f"场上奖池累积至{sum(game_info.game.round.raised) * 2}积分，现在轮到{player_list[player_id]['name']}行动……")  # 使用分隔线创建视觉上的行分隔
     row = canvas.container(border=True)
     row.caption("公共牌")
     round.show_community_cards(row)
@@ -205,7 +194,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     ability_menu.toggle(label='透视眼', key='see_through')
     bet_statistic = player_cols[5]
     player = game_info.game.players[0]
-    round.player_act(bet_statistic, player.in_chips*2, st.session_state.payoffs[0])
+    round.player_act(bet_statistic, player.in_chips * 2, st.session_state.payoffs[0])
     if st.session_state['continue']:
         legal_action = state_info['raw_legal_actions']
         with st.spinner('Please wait...'):
@@ -214,7 +203,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
             # 为每个操作创建一个按钮
             for action in legal_action:
                 # 获取中文标签
-                label = translate_dict[action]
+                label = [action]
 
                 # 创建按钮
                 if operate_menu.button(key=action, label=label, disabled=disabled):
@@ -231,30 +220,28 @@ def init():
     # 需要定义玩家列表、奖池大小、游戏阶段等
     game_info = rlcard.make('limit-holdem', config={'game_num_players': 6})
     human_agent = HumanAgent(game_info.num_actions)
-    # todo 将RandomAgent替换
-    agent_1 = LimitholdemRuleAgentV1()
-    agent_2 = LimitholdemRuleAgentV1()
-    agent_3 = RandomAgent(num_actions=game_info.num_actions)
-    #agent_3 = DQNAgent(replay_memory_size=0,
-    #                     replay_memory_init_size=0,
-    #                     update_target_estimator_every=0,
-    #                     discount_factor=0,
-    #                     epsilon_start=0,
-    #                     epsilon_end=0,
-    #                     epsilon_decay_steps=0,
-    #                     batch_size=0,
-    #                     num_actions=game_info.num_actions,
-    #                     state_shape=[1],
-    #                     mlp_layers=[10,10],
-    #                     device=torch.device('cpu'))
-    agent_4 = RandomAgent(num_actions=game_info.num_actions)
-    agent_5 = RandomAgent(num_actions=game_info.num_actions)
-    #agent_4 = NFSPAgent(num_actions=game_info.num_actions,
-    #                      state_shape=[10],
-    #                      hidden_layers_sizes=[10,10],
-    #                      q_mlp_layers=[10,10],
-    #                      device=torch.device('cpu'))
-    #agent_5 = LimitholdemRuleAgentV1()
+    agentscope.init(
+        model_configs="./config/model_configs.json"
+    )
+    st.session_state.player = Player(name=player_list[1]['name'],
+                    avatar=player_list[1]['avatar'],
+                    num_actions=game_info.num_actions)
+    agent_1 = Npc(name=player_list[1]['name'],
+                  avatar=player_list[1]['avatar'],
+                  num_actions=game_info.num_actions)
+    agent_2 = Npc(name=player_list[2]['name'],
+                  avatar=player_list[2]['avatar'],
+                  num_actions=game_info.num_actions)
+    agent_3 = Npc(name=player_list[3]['name'],
+                  avatar=player_list[3]['avatar'],
+                  num_actions=game_info.num_actions)
+    agent_4 = Npc(name=player_list[4]['name'],
+                  avatar=player_list[4]['avatar'],
+                  num_actions=game_info.num_actions)
+    agent_5 = Npc(name=player_list[5]['name'],
+                  avatar=player_list[5]['avatar'],
+                  num_actions=game_info.num_actions)
+    set_audiences(participants=[agent_1, agent_2, agent_3, agent_4, agent_5])
     game_info.set_agents([
         human_agent,
         agent_1, agent_2, agent_3, agent_4, agent_5
@@ -302,6 +289,7 @@ def new_game():
     # st.session_state.chat_history = []
     # st.session_state.recording = ''
 
+
 def user_step(state_info):
     return state_info['raw_legal_actions'][0]
 
@@ -332,6 +320,7 @@ translate_dict = {
     'fold': '弃牌',
     'check': '过牌',
 }
+
 
 def convert_cards_list(cards_list):
     # 遍历列表中的每个扑克牌表示，并调用convert_card_notation函数进行转换

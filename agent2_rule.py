@@ -3,6 +3,7 @@
 import rlcard
 from rlcard.models.model import Model
 
+
 class LimitholdemRuleAgentV1(object):
     ''' Limit Hold 'em Rule agent version 1
     '''
@@ -32,10 +33,11 @@ class LimitholdemRuleAgentV1(object):
         # KQ, KJ, QJ, JT
         # Fold all hand types except those mentioned above to save money
         if len(public_cards) == 0:
-            if hand[0][1] == hand [1][1]:
+            if hand[0][1] == hand[1][1]:
                 action = 'raise'
             elif hand[0][1] == 'A' or hand[1][1] == 'A':
-                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1], hand[1][1]] or 'T' in [hand[0][1], hand[1][1]]:
+                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1],
+                                                                                                 hand[1][1]] or 'T' in [hand[0][1], hand[1][1]]:
                     action = 'raise'
                 elif hand[0][0] == hand[1][0]:
                     action = 'raise'
@@ -48,12 +50,14 @@ class LimitholdemRuleAgentV1(object):
             for i, _ in enumerate(public_cards):
                 public_cards_ranks[i] = public_cards[i][1]
                 public_cards_flush[i] = public_cards[i][0]
-            if hand[0][1] == hand [1][1]:
-            # if the player already have a pair, raise when public cards have card same as the pair
+            if hand[0][1] == hand[1][1]:
+                # if the player already have a pair, raise when public cards have card same as the pair
                 if hand[0][1] in public_cards_ranks:
                     action = 'raise'
             elif hand[0][1] == 'A' or hand[1][1] == 'A':
-                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1], hand[1][1]] or 'T' in [hand[0][1], hand[1][1]]:
+                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1],
+                                                                                                 hand[1][1]] or 'T' in [
+                    hand[0][1], hand[1][1]]:
                     # For AK, AQ, AJ, AT types, if public cards have A, K, Q, J, T, raise, because the chance of getting a straight greatly increases
                     if 'A' in public_cards_ranks or 'K' in public_cards_ranks or 'Q' in public_cards_ranks or 'J' in public_cards_ranks or 'T' in public_cards_ranks:
                         action = 'raise'
@@ -61,12 +65,13 @@ class LimitholdemRuleAgentV1(object):
                 elif hand[0][0] == hand[1][0]:
                     if hand[0][0] in public_cards_flush:
                         action = 'raise'
-            elif max(public_cards_ranks) in ['5', '4' ,'3', '2']: # for KQ, KJ, QJ, JT, check when having no cards higher than 5
+            elif max(public_cards_ranks) in ['5', '4', '3',
+                                             '2']:  # for KQ, KJ, QJ, JT, check when having no cards higher than 5
                 action = 'check'
             else:
                 action = 'call'
 
-        if len(public_cards) == 5 or len(public_cards) == 4 :
+        if len(public_cards) == 5 or len(public_cards) == 4:
             public_cards_ranks = []
             public_cards_flush = []
             for i, _ in enumerate(public_cards):
@@ -74,12 +79,14 @@ class LimitholdemRuleAgentV1(object):
                 public_cards_flush.append('S')
                 public_cards_ranks[i] = public_cards[i][1]
                 public_cards_flush[i] = public_cards[i][0]
-            if hand[0][1] == hand [1][1]:
-            # if the player already have a pair, raise when public cards have card same as the pair
+            if hand[0][1] == hand[1][1]:
+                # if the player already have a pair, raise when public cards have card same as the pair
                 if hand[0][1] in public_cards_ranks:
                     action = 'raise'
             elif hand[0][1] == 'A' or hand[1][1] == 'A':
-                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1], hand[1][1]] or 'T' in [hand[0][1], hand[1][1]]:
+                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1],
+                                                                                                 hand[1][1]] or 'T' in [
+                    hand[0][1], hand[1][1]]:
                     # For AK, AQ, AJ, AT types, if public cards have A, K, Q, J, T, raise, because the chance of getting a straight greatly increases
                     if 'A' in public_cards_ranks or 'K' in public_cards_ranks or 'Q' in public_cards_ranks or 'J' in public_cards_ranks or 'T' in public_cards_ranks:
                         action = 'raise'
@@ -87,12 +94,13 @@ class LimitholdemRuleAgentV1(object):
                 elif hand[0][0] == hand[1][0]:
                     if hand[0][0] in public_cards_flush:
                         action = 'raise'
-            elif max(public_cards_ranks) in ['5', '4', '3', '2']: # for KQ, KJ, QJ, JT, fold when having no cards higher than 5
+            elif max(public_cards_ranks) in ['5', '4', '3',
+                                             '2']:  # for KQ, KJ, QJ, JT, fold when having no cards higher than 5
                 action = 'fold'
             else:
                 action = 'call'
 
-        #return action
+        # return action
         if action in legal_actions:
             return action
         else:
@@ -119,6 +127,7 @@ class LimitholdemRuleAgentV1(object):
         ''' Step for evaluation. The same to step
         '''
         return self.step(state), []
+
 
 class LimitholdemRuleModelV1(Model):
     ''' Limitholdem Rule Model version 1
@@ -195,9 +204,10 @@ class RandomAgent(object):
         '''
         probs = [0 for _ in range(self.num_actions)]
         for i in state['legal_actions']:
-            probs[i] = 1/len(state['legal_actions'])
+            probs[i] = 1 / len(state['legal_actions'])
 
         info = {}
-        info['probs'] = {state['raw_legal_actions'][i]: probs[list(state['legal_actions'].keys())[i]] for i in range(len(state['legal_actions']))}
+        info['probs'] = {state['raw_legal_actions'][i]: probs[list(state['legal_actions'].keys())[i]] for i in
+                         range(len(state['legal_actions']))}
 
         return self.step(state), info
