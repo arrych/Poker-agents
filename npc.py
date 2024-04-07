@@ -104,3 +104,6 @@ class Player(Npc):
 
     def step(self, step):
         self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{step}'))
+
+    def step2(self, name, step):
+        self._broadcast_to_audience(Msg(name=name, content=f'我选择{step}'))

@@ -1,10 +1,10 @@
 import streamlit as st
 
 import rlcard
-from rlcard.agents import LimitholdemHumanAgent as HumanAgent
+from agent2_rule import LimitholdemRuleAgentV1
 import agentscope
-from agentscope import msghub
-from npc import Npc, set_audiences,Player
+from agent2_rule import RandomAgent
+from npc import Npc, set_audiences, Player
 from utils2 import CardDeck, Card, BackCard
 import round
 import time
@@ -53,6 +53,7 @@ card_deck = st.session_state.card_deck = CardDeck()
 jackpot = st.session_state.jackpot = 0
 
 
+
 # players = agentscope.init(
 #     model_configs="./config/model_configs.json"
 # )
@@ -61,8 +62,6 @@ jackpot = st.session_state.jackpot = 0
 def game2():
 
     st.session_state.round = round.show_hand_round  # 控制阶段
-    # 初始化session_state
-
     # 初始化游戏状态，包括玩家信息、奖池等
     # game_phase: pre-flop -> flop -> turn -> river -> showdown
     if 'game_phase' not in st.session_state:
@@ -79,13 +78,16 @@ def game2():
 
     trajectories = [[] for _ in range(game_info.num_players)]
 
-    st.write(f'get_num_players={game_info.game.get_num_players()}')
     # todo 翻译日志
     trajectories[player_id].append(state_info)
     # st.write(state_info)
     #st.write("player_id:" + str(player_id))
     st.session_state.action = 'check'
     st.session_state.hand_cards[0] = convert_cards_list(game_info.game.players[0].hand)
+    if st.sidebar.button("重新开始!"):
+        init()
+    show(game_info, state_info, player_id, trajectories)
+
     if not game_info.is_over() and not st.session_state['continue']:
         if player_id == 0:
             # action = user_step(state_info)
@@ -96,21 +98,15 @@ def game2():
             #st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
             # todo 了解action为什么会越界 是不是应该取所有的action
             st.session_state.action = action
-            #st.session_state.action = game_info.actions[action]
+            if player_id == 1 or player_id == 2 or player_id == 5:
+               st.session_state.broadcast_npc.step2(st.session_state.player_list[player_id]['name'], action)
+
             player = game_info.game.players[player_id]
             step(game_info, state_info, player_id, action, trajectories)
             st.session_state.agent_actions[player_id-1] = [st.session_state.action, player.in_chips*2]
             #st.write(f"players_action: {st.session_state.agent_actions}")
             st.session_state.hand_cards[player_id] = convert_cards_list(player.hand)
 
-    var2 = st.session_state.action
-    var3 = player_id
-    if st.sidebar.button("重新开始!"):
-        init()
-    show(game_info, state_info, st.session_state.action, player_id, trajectories)
-
-    # if player_id == 0 and not st.session_state['continue']:
-    #     step(game_info, state_info, player_id, st.session_state.action, trajectories)
     if game_info.is_over():
         payoffs = game_info.game.get_payoffs()
         st.session_state.payoffs = st.session_state.payoffs + payoffs*2
@@ -145,7 +141,7 @@ def step(game_info, state_info, player_id, action, trajectories):
         trajectories[player_id].append(state_info)
 
 
-def show(game_info, state_info, rd, player_id, trajectories):
+def show(game_info, state_info, player_id, trajectories):
     with st.sidebar:
         for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
             row = st.container(border=True)
@@ -219,25 +215,33 @@ def init():
     agentscope.init(
         model_configs="./config/model_configs.json"
     )
+    # 初始化session_state
+    st.session_state.broadcast_npc = Player(name='test',
+                           avatar='test',
+                           num_actions=6)
     player = st.session_state.player = Player(name=player_list_raw[0]['name'],
                     avatar=player_list_raw[0]['avatar'],
                     num_actions=game_info.num_actions)
-    agent_1 = Npc(name=player_list_raw[1]['name'],
-                  avatar=player_list_raw[1]['avatar'],
-                  num_actions=game_info.num_actions)
-    agent_2 = Npc(name=player_list_raw[2]['name'],
-                  avatar=player_list_raw[2]['avatar'],
-                  num_actions=game_info.num_actions)
+    # agent_1 = Npc(name=player_list_raw[1]['name'],
+    #               avatar=player_list_raw[1]['avatar'],
+    #               num_actions=game_info.num_actions)
+    # agent_2 = Npc(name=player_list_raw[2]['name'],
+    #               avatar=player_list_raw[2]['avatar'],
+    #               num_actions=game_info.num_actions)
+    agent_1 = LimitholdemRuleAgentV1()
+    agent_2 = LimitholdemRuleAgentV1()
     agent_3 = Npc(name=player_list_raw[3]['name'],
                   avatar=player_list_raw[3]['avatar'],
                   num_actions=game_info.num_actions)
     agent_4 = Npc(name=player_list_raw[4]['name'],
                   avatar=player_list_raw[4]['avatar'],
                   num_actions=game_info.num_actions)
-    agent_5 = Npc(name=player_list_raw[5]['name'],
-                  avatar=player_list_raw[5]['avatar'],
-                  num_actions=game_info.num_actions)
-    set_audiences(participants=[player, agent_1, agent_2, agent_3, agent_4, agent_5])
+    # agent_5 = Npc(name=player_list_raw[5]['name'],
+    #               avatar=player_list_raw[5]['avatar'],
+    #               num_actions=game_info.num_actions)
+    agent_5 = RandomAgent(num_actions=game_info.num_actions)
+
+    set_audiences(participants=[player, agent_3, agent_4, st.session_state.broadcast_npc])
     game_info.set_agents([
         player,
         agent_1, agent_2, agent_3, agent_4, agent_5
