@@ -39,6 +39,7 @@ class CardDeck:
 
 class Card:
     BACK_IMAGE_PATH = 'assets/cards/back.jpg'
+    isBack = False
 
     def __init__(self, suit, rank):
         self.suit = suit
@@ -47,6 +48,14 @@ class Card:
         suit_map = {'h': '红心', 'd': '方块', 's': '黑桃', 'c': '梅花'}
         self.description = f'{suit_map.get(suit[0])}{rank}'
 
+
+        suit_map = {'h': '红心', 'd': '方块', 's': '黑桃', 'c': '梅花'}
+
+
+class BackCard(Card):
+    def __init__(self):
+        self.isBack = True
+        self.image_path = 'assets/cards/back.jpg'
 
 if __name__ == '__main__':
     deck = CardDeck()
