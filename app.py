@@ -1,3 +1,4 @@
+import agentscope
 import streamlit as st
 from game1 import game1
 from game2 import game2
@@ -15,6 +16,10 @@ games_info = {
         "更多信息": "实现中,请耐心等待..."
     }
 }
+
+players = agentscope.init(
+    model_configs="./config/model_configs.json"
+)
 
 # 初始化会话状态
 if 'page' not in st.session_state:

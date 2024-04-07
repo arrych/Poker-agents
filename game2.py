@@ -1,4 +1,3 @@
-
 import streamlit as st
 
 import rlcard
@@ -9,6 +8,7 @@ from rlcard.agents import RandomAgent
 from rlcard.games.limitholdem.game import LimitHoldemGame
 from rlcard.utils.utils import print_card
 import agentscope
+import prompt2
 from agentscope import msghub
 from npc import Npc
 from points import Points
@@ -63,13 +63,7 @@ card_deck = st.session_state.card_deck = CardDeck()
 jackpot = st.session_state.jackpot = 0
 
 
-# players = agentscope.init(
-#     model_configs="./config/model_configs.json"
-# )
-
-
 def game2():
-
     st.session_state.round = round.show_hand_round  # 控制阶段
     # 初始化session_state
 
@@ -92,7 +86,7 @@ def game2():
     # todo 翻译日志
     trajectories[player_id].append(state_info)
     var1 = st.session_state['continue']
-    st.write("round_counter: "+str(game_info.game.round_counter))
+    st.write("round_counter: " + str(game_info.game.round_counter))
     # st.write(state_info)
     st.write("player_id:" + str(player_id))
     st.session_state.action = 'check'
@@ -118,7 +112,7 @@ def game2():
         init()
     if game_info.is_over():
         payoffs = game_info.game.get_payoffs()
-        st.session_state.payoffs = st.session_state.payoffs + payoffs*2
+        st.session_state.payoffs = st.session_state.payoffs + payoffs * 2
         var4 = st.session_state.payoffs
         if st.button("新的一局!"):
             new_game()
@@ -153,7 +147,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
             if player.status == PlayerStatus.ALIVE:
                 round.show_hand_cards(cols[1:3], npc)
                 if i == player_id:
-                    round.npc_act(npc, cols[3], rd, player.in_chips*2)
+                    round.npc_act(npc, cols[3], rd, player.in_chips * 2)
             else:
                 cols[1].image(st.session_state.user_cards[0].image_path)  # NPC手牌图片
                 cols[2].image(st.session_state.user_cards[1].image_path)  # NPC手牌图片
@@ -163,7 +157,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
     canvas.subheader(
-        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
+        f"场上奖池累积至{sum(game_info.game.round.raised) * 2}积分，现在轮到{player_list[player_id]['name']}行动……")  # 使用分隔线创建视觉上的行分隔
     row = canvas.container(border=True)
     row.caption("公共牌")
     round.show_community_cards(row)
@@ -188,7 +182,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     ability_menu.toggle(label='读心术', key='read_mind')
     ability_menu.toggle(label='透视眼', key='see_through')
     bet_statistic = player_cols[5]
-    round.player_act(bet_statistic, player.in_chips*2, st.session_state.payoffs[0])
+    round.player_act(bet_statistic, player.in_chips * 2, st.session_state.payoffs[0])
     if st.session_state['continue']:
         legal_action = state_info['raw_legal_actions']
         with st.spinner('Please wait...'):
@@ -215,11 +209,31 @@ def init():
     game_info = rlcard.make('limit-holdem', config={'game_num_players': 6})
     human_agent = HumanAgent(game_info.num_actions)
     # todo 将RandomAgent替换
-    agent_1 = RandomAgent(num_actions=game_info.num_actions)
-    agent_2 = RandomAgent(num_actions=game_info.num_actions)
-    agent_3 = RandomAgent(num_actions=game_info.num_actions)
-    agent_4 = RandomAgent(num_actions=game_info.num_actions)
-    agent_5 = RandomAgent(num_actions=game_info.num_actions)
+    agent_1 = Npc(name=player_list[1]['name'],
+                  avatar=player_list[1]['avatar'],
+                  sys_prompt=prompt2.npc_sys_prompt[player_list[1]['name']],
+                  model_config_name='qwen_config',
+                  num_actions=game_info.num_actions)
+    agent_2 = Npc(name=player_list[2]['name'],
+                  avatar=player_list[2]['avatar'],
+                  sys_prompt=prompt2.npc_sys_prompt[player_list[2]['name']],
+                  model_config_name='qwen_config',
+                  num_actions=game_info.num_actions)
+    agent_3 = Npc(name=player_list[3]['name'],
+                  avatar=player_list[3]['avatar'],
+                  sys_prompt=prompt2.npc_sys_prompt[player_list[3]['name']],
+                  model_config_name='qwen_config',
+                  num_actions=game_info.num_actions)
+    agent_4 = Npc(name=player_list[4]['name'],
+                  avatar=player_list[4]['avatar'],
+                  sys_prompt=prompt2.npc_sys_prompt[player_list[4]['name']],
+                  model_config_name='qwen_config',
+                  num_actions=game_info.num_actions)
+    agent_5 = Npc(name=player_list[5]['name'],
+                  avatar=player_list[5]['avatar'],
+                  sys_prompt=prompt2.npc_sys_prompt[player_list[5]['name']],
+                  model_config_name='qwen_config',
+                  num_actions=game_info.num_actions)
     game_info.set_agents([
         human_agent,
         agent_1, agent_2, agent_3, agent_4, agent_5
@@ -263,6 +277,7 @@ def new_game():
     # st.session_state.chat_history = []
     # st.session_state.recording = ''
 
+
 def user_step(state_info):
     return state_info['raw_legal_actions'][0]
 
@@ -294,50 +309,62 @@ translate_dict = {
     'check': '过牌',
 }
 
+
 def convert_cards_list(cards_list):
     # 遍历列表中的每个扑克牌表示，并调用convert_card_notation函数进行转换
     converted_list = [convert_card_notation(card) for card in cards_list]
     return converted_list
 
+
 def deal_community_cards(n):
     # 发n张公共牌的逻辑
     pass
+
 
 def deal_hand_cards_to_each_player(n):
     # 给每个玩家发n张手牌的逻辑
     pass
 
+
 def show_hand_cards():
     # 展示手牌的逻辑
     pass
+
 
 def advance_game_phase():
     # 游戏阶段推进逻辑
     pass
 
+
 def player_actions(allow_fold=True):
     # 玩家行动逻辑，根据allow_fold参数决定是否允许弃牌
     pass
+
 
 def show_community_cards(n):
     # 展示前n张公共牌的逻辑
     pass
 
+
 def show_community_card(n):
     # 展示第n张公共牌的逻辑
     pass
+
 
 def show_all_hand_cards():
     # 展示所有玩家手牌的逻辑
     pass
 
+
 def decide_winner():
     # 决定赢家的逻辑
     pass
 
+
 def clear_points():
     # 清算积分的逻辑
     pass
+
 
 def reset_game():
     # 游戏重置逻辑

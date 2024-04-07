@@ -81,7 +81,6 @@ class CustomizedAgent(AgentBase):
 
         return msg
 
-    # todo 将RandomAgent替换
     @staticmethod
     def step(state):
         ''' Predict the action given the curent state in gerenerating training data.
