@@ -61,7 +61,7 @@ jackpot = st.session_state.jackpot = 0
 
 def game2():
 
-    st.session_state.round = round.show_hand_round  # 控制阶段
+    st.session_state.round = round.pre_flop_round  # 控制阶段
     # 初始化游戏状态，包括玩家信息、奖池等
     # game_phase: pre-flop -> flop -> turn -> river -> showdown
     if 'game_phase' not in st.session_state:
