@@ -35,7 +35,7 @@ class CardDeck:
             return self.ranks.index(rank), self.suits.index(suit)
 
         cards.sort(key=sort_key)
-        sorted_cards = [Card(suit, rank, self.ranks.index(rank)) for suit, rank in cards]
+        sorted_cards = [Card(suit, rank) for suit, rank in cards]
 
         return sorted_cards
 
@@ -44,10 +44,10 @@ class Card:
     BACK_IMAGE_PATH = 'assets/cards/back.jpg'
     isBack = False
 
-    def __init__(self, suit, rank, rank_idx):
+    def __init__(self, suit, rank):
         self.suit = suit
         self.rank = rank
-        self.rank_idx = rank_idx
+        self.rank_idx = ranks_list.index(rank)
         self.image_path = f'assets/cards/{suit}/{suit}{rank}.png'
         suit_map = {'h': '红心', 'd': '方块', 's': '黑桃', 'c': '梅花'}
         self.description = f'{suit_map.get(suit[0])}{rank}'
