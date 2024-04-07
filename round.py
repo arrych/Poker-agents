@@ -37,15 +37,11 @@ def show_community_cards(layout: DeltaGenerator):
             col.image(Card.BACK_IMAGE_PATH)
 
 
-def show_hand_cards(layout: list[DeltaGenerator], npc):
+def show_back_cards(layout: list[DeltaGenerator]):
     # check_cards(npc)
     # if st.session_state.round == show_hand_round:
-    if not True:
-        layout[0].image(st.session_state.hand_cards[npc['name']][0].image_path)  # NPC手牌图片
-        layout[1].image(st.session_state.hand_cards[npc['name']][1].image_path)  # NPC手牌图片
-    else:
-        layout[0].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
-        layout[1].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
+    layout[0].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
+    layout[1].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
 
 
 def show_game_round_step(layout: DeltaGenerator):
