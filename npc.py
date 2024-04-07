@@ -12,6 +12,7 @@ from agentscope.agents import AgentBase
 from agentscope.message import Msg
 from agentscope.prompt import PromptEngine, PromptType
 from agent2 import CustomizedAgent
+from rlcard.agents import LimitholdemHumanAgent as HumanAgent
 
 act_tuple = tuple['跟注', '加注', '弃牌']
 MAX_NEGOTIATE_ROUNDS = 3
@@ -75,9 +76,6 @@ class Npc(CustomizedAgent):
             agent.observe(x)
 
     def shadows_negotiate(self, state):
-        state = state['raw_obs']
-        hand = state['hand']
-        public_cards = state['public_cards']
         round_info = round.pre_flop_round  ##对局阶段
         if st.session_state['round_info'] is not None:
             round_info = st.session_state.round_info
@@ -96,12 +94,13 @@ class Npc(CustomizedAgent):
                     except JSONDecodeError:
                         for audience in self.shadows:
                             audience.forget_last_answer()
-        return 'raise'
+        return self.randomAgent.step(state)
 
 
 class Player(Npc):
     def __init__(self, name, avatar, num_actions):
         super().__init__(name, avatar, num_actions)
+        self.humanAgent = HumanAgent(num_actions)
 
     def step(self, step):
         self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{step}'))

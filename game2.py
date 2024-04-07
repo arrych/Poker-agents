@@ -1,22 +1,10 @@
-
 import streamlit as st
 
 import rlcard
-from rlcard.games.limitholdem import PlayerStatus
-from rlcard.utils import set_seed
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
-from agent2_rule import LimitholdemRuleAgentV1
-from agent2_rule import RandomAgent
-from rlcard.agents.pettingzoo_agents import NFSPAgentPettingZoo
-import torch
-
-from rlcard.games.limitholdem.game import LimitHoldemGame
-from rlcard.utils.utils import print_card
 import agentscope
 from agentscope import msghub
-from npc import Npc, set_audiences
-from points import Points
-from poker import Porker
+from npc import Npc, set_audiences,Player
 from utils2 import CardDeck, Card, BackCard
 import round
 import time
@@ -227,11 +215,11 @@ def init():
     # 初始化游戏状态逻辑
     # 需要定义玩家列表、奖池大小、游戏阶段等
     game_info = rlcard.make('limit-holdem', config={'game_num_players': 6})
-    human_agent = HumanAgent(game_info.num_actions)
+    # human_agent = HumanAgent(game_info.num_actions)
     agentscope.init(
         model_configs="./config/model_configs.json"
     )
-    player = st.session_state.player = Player(name=player_list[0]['name'],
+    player = st.session_state.player = Player(name=player_list_raw[0]['name'],
                     avatar=player_list_raw[0]['avatar'],
                     num_actions=game_info.num_actions)
     agent_1 = Npc(name=player_list_raw[1]['name'],
@@ -251,12 +239,13 @@ def init():
                   num_actions=game_info.num_actions)
     set_audiences(participants=[player, agent_1, agent_2, agent_3, agent_4, agent_5])
     game_info.set_agents([
-        human_agent,
+        player,
         agent_1, agent_2, agent_3, agent_4, agent_5
     ])
     st.session_state.game_info = game_info
     st.session_state.round_info = game_info.game.round
     st.session_state.player_list = player_list_raw
+    st.session_state.players = [player, agent_1, agent_2, agent_3, agent_4, agent_5]
     game_info.set_agents(st.session_state.players)
     st.session_state.game_phase = "pre-flop"
     st.session_state['continue'] = False
