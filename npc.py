@@ -47,6 +47,7 @@ class Npc(CustomizedAgent):
         self.shadows = []
         self.randomAgent = LimitholdemRuleAgentV1()
         for prompt in prompt2.shadow_assistants:
+            ## todo 这里的prompt['sys_prompt']是对自己两个性格的agent的初始提示，用于介绍游戏规则等等
             self.shadows.append(CustomizedAgent(prompt['name'], prompt['sys_prompt'], model_config_name, num_actions))
 
     def step(self, state):
@@ -60,6 +61,7 @@ class Npc(CustomizedAgent):
         """
         # return np.random.choice(list(state['legal_actions'].keys()))
         res = self.shadows_negotiate(state)
+        ## todo 这里是对别的NPC玩家进行回答的地方，需要修改格式
         self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}')) ## 将本次动作广播给所有听众
         return  res
 
@@ -67,6 +69,7 @@ class Npc(CustomizedAgent):
         """Broadcast the input to all audiences."""
         super()._broadcast_to_audience(x)
         """Broadcast the input to all shadows."""
+        ## todo 这里是将别的NPC的选择告知自己两个性格的agent
         ## Msg(name=self.name, content='自定义消息')
         for agent in self.shadows:
             agent.observe(x)
@@ -79,12 +82,15 @@ class Npc(CustomizedAgent):
         round_info = round.pre_flop_round  ##对局阶段
         if st.session_state['round_info'] is not None:
             round_info = st.session_state.round_info
+        ## todo announcement是在两个agent对话前，对两个性格的agent进行的提示
         with msghub(participants=self.shadows, announcement=prompt2.negotiate_announcement.format(round_info)):
             for i in range(MAX_NEGOTIATE_ROUNDS):
                 for agent in self.shadows:
-                    ## Msg(name=self.name, content='自定义消息')
+                    ## todo 这里可以自定义消息再进行一次提示
+                    ## todo 接上，像这样msg = agent(Msg(name=self.name, content='自定义消息'))
                     msg = agent()
                     try:
+                        ## todo 注意对回答格式的约束
                         res = json.loads(find_first_json(msg.content))
                         if res['agreement'] is True:
                             return res['action']
