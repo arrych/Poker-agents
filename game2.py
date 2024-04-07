@@ -5,10 +5,6 @@ import rlcard
 from rlcard.games.limitholdem import PlayerStatus
 from rlcard.utils import set_seed
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
-#from rlcard.agents.nfsp_agent import NFSPAgent
-#from rlcard.agents.dqn_agent import DQNAgent
-#from rlcard.agents.cfr_agent import CFRAgent
-#from rlcard.agents.random_agent import RandomAgent
 from agent2_rule import LimitholdemRuleAgentV1
 from agent2_rule import RandomAgent
 from rlcard.agents.pettingzoo_agents import NFSPAgentPettingZoo
@@ -52,7 +48,7 @@ NPC1~5，玩家依次发言，
 """
 
 # 假设的NPC数据
-player_list = [
+player_list_raw = [
     {'name': 'YOU', 'avatar': 'assets/avatars/player.png'},
     {'name': 'NPC_1', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_2', 'avatar': 'assets/avatars/npc1.png'},
@@ -60,7 +56,7 @@ player_list = [
     {'name': 'NPC_4', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_5', 'avatar': 'assets/avatars/npc1.png'}
 ]
-# 公共牌
+
 community_cards = st.session_state.community_cards = []
 user_cards = st.session_state.community_cards = []
 # 牌库
@@ -95,9 +91,9 @@ def game2():
 
     trajectories = [[] for _ in range(game_info.num_players)]
 
+    st.write(f'get_num_players={game_info.game.get_num_players()}')
     # todo 翻译日志
     trajectories[player_id].append(state_info)
-    #var1 = st.session_state['continue']
     # st.write(state_info)
     #st.write("player_id:" + str(player_id))
     st.session_state.action = 'check'
@@ -147,6 +143,7 @@ def game2():
 
 def step(game_info, state_info, player_id, action, trajectories):
     # Environment steps
+    st.write(f'game_info.agents[player_id]={game_info.agents[player_id]}')
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
     trajectories[player_id].append(action)
@@ -162,7 +159,7 @@ def step(game_info, state_info, player_id, action, trajectories):
 
 def show(game_info, state_info, rd, player_id, trajectories):
     with st.sidebar:
-        for i, npc in enumerate(player_list[1:]):  # 展示后五个NPC
+        for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
             row = st.container(border=True)
             cols = row.columns(4)
             cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
@@ -182,7 +179,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
     canvas.subheader(
-        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
+        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{st.session_state.player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
     row = canvas.container(border=True)
     row.caption("公共牌")
     round.show_community_cards(row)
@@ -191,7 +188,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     # 第三行：用户操作界面
     player_canvas = canvas.container(border=True)
     player_cols = player_canvas.columns(6)
-    player_cols[0].image(player_list[0]['avatar'], caption=player_list[0]['name'])
+    player_cols[0].image(st.session_state.player_list[0]['avatar'], caption=st.session_state.player_list[0]['name'])
     player_cols[1].image(st.session_state.hand_cards[0][0].image_path)  # NPC手牌图片
     player_cols[2].image(st.session_state.hand_cards[0][1].image_path)  # NPC手牌图片
 
@@ -255,12 +252,11 @@ def init():
     #                      q_mlp_layers=[10,10],
     #                      device=torch.device('cpu'))
     #agent_5 = LimitholdemRuleAgentV1()
-    game_info.set_agents([
-        human_agent,
-        agent_1, agent_2, agent_3, agent_4, agent_5
-    ])
+    st.session_state.players = [human_agent,agent_1, agent_2, agent_3, agent_4, agent_5]
     st.session_state.game_info = game_info
     st.session_state.round_info = game_info.game.round
+    st.session_state.player_list = player_list_raw
+    game_info.set_agents(st.session_state.players)
     st.session_state.game_phase = "pre-flop"
     st.session_state['continue'] = False
     st.session_state.state, st.session_state.player_id = st.session_state.game_info.reset()
@@ -268,7 +264,7 @@ def init():
     st.session_state.payoffs = [20, 20, 20, 20, 20, 20]
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
                                    [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    st.session_state.who_speak = player_list[5]
+    st.session_state.who_speak = player_list_raw[5]
     # st.session_state.recording = None
     # st.session_state['role_selected'] = False
     # st.session_state['selected_character'] = None
@@ -278,29 +274,25 @@ def init():
 
 
 def new_game():
-    st.session_state.state, st.session_state.player_id = st.session_state.game_info.reset()
     st.session_state['continue'] = False
     st.session_state.round_info = st.session_state.game_info.game.round
     st.session_state.agent_actions = [['', 0], ['', 0], ['', 0], ['', 0], ['', 0]]  # index=0 为动作 index=1 为积分
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
                                    [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    # p = Porker()
-    # st.session_state.porker = p
-    # p.LicensingCards()  # 发牌
-    # st.session_state.round = 1
-    # st.session_state.game += 1
-    # st.session_state.agent_card_name = p.AgentCardName
-    # st.session_state.agent_card_id = p.AgentCardId
-    # st.session_state.your_card_name = p.YourCardName
-    # st.session_state.your_card_id = p.YourCardId
-    # st.session_state.community_card_name = p.CommunityCardName
-    # st.session_state.community_card_id = p.CommunityCardId
-    # init -> start -> next -> end
-    # st.session_state.game_state = "start"
-    # st.session_state.points.InitBet()  # 每局开始投入1个积分打底
-    # # 聊天记录
-    # st.session_state.chat_history = []
-    # st.session_state.recording = ''
+    filtered_agents = filter_agents_by_scores(st.session_state.players, st.session_state.payoffs, st.session_state.player_list)
+    st.session_state.game_info.set_agents(filtered_agents)
+    st.session_state.game_info.game.configure({'game_num_players': len(filtered_agents)})
+    st.session_state.state, st.session_state.player_id = st.session_state.game_info.reset()
+
+def filter_agents_by_scores(agents, scores, player_list):
+    filtered_agents = []
+    for i in range(len(scores)):
+        if scores[i] >= 0:
+            filtered_agents.append(agents[i])
+        else:
+            player_list.pop(i)
+    return filtered_agents
+
 
 def user_step(state_info):
     return state_info['raw_legal_actions'][0]
