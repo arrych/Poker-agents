@@ -1,14 +1,22 @@
+
 import streamlit as st
 
 import rlcard
+from rlcard.games.limitholdem import PlayerStatus
+from rlcard.utils import set_seed
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
-
-import agentscope
-import prompt2
 from agent2_rule import LimitholdemRuleAgentV1
 from agent2_rule import RandomAgent
+from rlcard.agents.pettingzoo_agents import NFSPAgentPettingZoo
+import torch
+
+from rlcard.games.limitholdem.game import LimitHoldemGame
+from rlcard.utils.utils import print_card
+import agentscope
 from agentscope import msghub
-from npc import Npc, set_audiences, Player
+from npc import Npc, set_audiences
+from points import Points
+from poker import Porker
 from utils2 import CardDeck, Card, BackCard
 import round
 import time
@@ -40,15 +48,15 @@ NPC1~5，玩家依次发言，
 """
 
 # 假设的NPC数据
-player_list = [
-    {'name': 'PLAYER', 'avatar': 'assets/avatars/player.png'},
+player_list_raw = [
+    {'name': 'YOU', 'avatar': 'assets/avatars/player.png'},
     {'name': 'NPC_1', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_2', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_3', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_4', 'avatar': 'assets/avatars/npc1.png'},
     {'name': 'NPC_5', 'avatar': 'assets/avatars/npc1.png'}
 ]
-# 公共牌
+
 community_cards = st.session_state.community_cards = []
 user_cards = st.session_state.community_cards = []
 # 牌库
@@ -63,6 +71,7 @@ jackpot = st.session_state.jackpot = 0
 
 
 def game2():
+
     st.session_state.round = round.show_hand_round  # 控制阶段
     # 初始化session_state
 
@@ -82,11 +91,11 @@ def game2():
 
     trajectories = [[] for _ in range(game_info.num_players)]
 
+    st.write(f'get_num_players={game_info.game.get_num_players()}')
     # todo 翻译日志
     trajectories[player_id].append(state_info)
-    # var1 = st.session_state['continue']
     # st.write(state_info)
-    # st.write("player_id:" + str(player_id))
+    #st.write("player_id:" + str(player_id))
     st.session_state.action = 'check'
     st.session_state.hand_cards[0] = convert_cards_list(game_info.game.players[0].hand)
     if not game_info.is_over() and not st.session_state['continue']:
@@ -96,14 +105,14 @@ def game2():
         else:
             # 机器人行动
             action = game_info.agents[player_id].step(state_info)
-            # st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
+            #st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
             # todo 了解action为什么会越界 是不是应该取所有的action
             st.session_state.action = action
-            # st.session_state.action = game_info.actions[action]
+            #st.session_state.action = game_info.actions[action]
             player = game_info.game.players[player_id]
             step(game_info, state_info, player_id, action, trajectories)
-            st.session_state.agent_actions[player_id - 1] = [st.session_state.action, player.in_chips * 2]
-            # st.write(f"players_action: {st.session_state.agent_actions}")
+            st.session_state.agent_actions[player_id-1] = [st.session_state.action, player.in_chips*2]
+            #st.write(f"players_action: {st.session_state.agent_actions}")
             st.session_state.hand_cards[player_id] = convert_cards_list(player.hand)
 
     var2 = st.session_state.action
@@ -116,13 +125,13 @@ def game2():
     #     step(game_info, state_info, player_id, st.session_state.action, trajectories)
     if game_info.is_over():
         payoffs = game_info.game.get_payoffs()
-        st.session_state.payoffs = st.session_state.payoffs + payoffs * 2
+        st.session_state.payoffs = st.session_state.payoffs + payoffs*2
         if payoffs[0] > 0:
-            st.success(f'You win {payoffs[0] * 2} chips!')
+            st.success(f'You win {payoffs[0]*2} chips!')
         elif payoffs[0] == 0:
             st.info('It is a tie.')
         else:
-            st.error(f'You lose {-payoffs[0] * 2} chips!')
+            st.error(f'You lose {-payoffs[0]*2} chips!')
         if st.button("新的一局!"):
             new_game()
             st.rerun()
@@ -133,9 +142,8 @@ def game2():
 
 
 def step(game_info, state_info, player_id, action, trajectories):
-    # 用户消息广播
-    st.session_state.player.step(action)
     # Environment steps
+
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
     trajectories[player_id].append(action)
@@ -151,7 +159,7 @@ def step(game_info, state_info, player_id, action, trajectories):
 
 def show(game_info, state_info, rd, player_id, trajectories):
     with st.sidebar:
-        for i, npc in enumerate(player_list[1:]):  # 展示后五个NPC
+        for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
             row = st.container(border=True)
             cols = row.columns(4)
             cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
@@ -171,7 +179,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
     canvas.subheader(
-        f"场上奖池累积至{sum(game_info.game.round.raised) * 2}积分，现在轮到{player_list[player_id]['name']}行动……")  # 使用分隔线创建视觉上的行分隔
+        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{st.session_state.player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
     row = canvas.container(border=True)
     row.caption("公共牌")
     round.show_community_cards(row)
@@ -180,7 +188,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     # 第三行：用户操作界面
     player_canvas = canvas.container(border=True)
     player_cols = player_canvas.columns(6)
-    player_cols[0].image(player_list[0]['avatar'], caption=player_list[0]['name'])
+    player_cols[0].image(st.session_state.player_list[0]['avatar'], caption=st.session_state.player_list[0]['name'])
     player_cols[1].image(st.session_state.hand_cards[0][0].image_path)  # NPC手牌图片
     player_cols[2].image(st.session_state.hand_cards[0][1].image_path)  # NPC手牌图片
 
@@ -194,7 +202,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
     ability_menu.toggle(label='透视眼', key='see_through')
     bet_statistic = player_cols[5]
     player = game_info.game.players[0]
-    round.player_act(bet_statistic, player.in_chips * 2, st.session_state.payoffs[0])
+    round.player_act(bet_statistic, player.in_chips*2, st.session_state.payoffs[0])
     if st.session_state['continue']:
         legal_action = state_info['raw_legal_actions']
         with st.spinner('Please wait...'):
@@ -203,7 +211,7 @@ def show(game_info, state_info, rd, player_id, trajectories):
             # 为每个操作创建一个按钮
             for action in legal_action:
                 # 获取中文标签
-                label = [action]
+                label = translate_dict[action]
 
                 # 创建按钮
                 if operate_menu.button(key=action, label=label, disabled=disabled):
@@ -224,22 +232,22 @@ def init():
         model_configs="./config/model_configs.json"
     )
     player = st.session_state.player = Player(name=player_list[0]['name'],
-                    avatar=player_list[0]['avatar'],
+                    avatar=player_list_raw[0]['avatar'],
                     num_actions=game_info.num_actions)
-    agent_1 = Npc(name=player_list[1]['name'],
-                  avatar=player_list[1]['avatar'],
+    agent_1 = Npc(name=player_list_raw[1]['name'],
+                  avatar=player_list_raw[1]['avatar'],
                   num_actions=game_info.num_actions)
-    agent_2 = Npc(name=player_list[2]['name'],
-                  avatar=player_list[2]['avatar'],
+    agent_2 = Npc(name=player_list_raw[2]['name'],
+                  avatar=player_list_raw[2]['avatar'],
                   num_actions=game_info.num_actions)
-    agent_3 = Npc(name=player_list[3]['name'],
-                  avatar=player_list[3]['avatar'],
+    agent_3 = Npc(name=player_list_raw[3]['name'],
+                  avatar=player_list_raw[3]['avatar'],
                   num_actions=game_info.num_actions)
-    agent_4 = Npc(name=player_list[4]['name'],
-                  avatar=player_list[4]['avatar'],
+    agent_4 = Npc(name=player_list_raw[4]['name'],
+                  avatar=player_list_raw[4]['avatar'],
                   num_actions=game_info.num_actions)
-    agent_5 = Npc(name=player_list[5]['name'],
-                  avatar=player_list[5]['avatar'],
+    agent_5 = Npc(name=player_list_raw[5]['name'],
+                  avatar=player_list_raw[5]['avatar'],
                   num_actions=game_info.num_actions)
     set_audiences(participants=[player, agent_1, agent_2, agent_3, agent_4, agent_5])
     game_info.set_agents([
@@ -248,6 +256,8 @@ def init():
     ])
     st.session_state.game_info = game_info
     st.session_state.round_info = game_info.game.round
+    st.session_state.player_list = player_list_raw
+    game_info.set_agents(st.session_state.players)
     st.session_state.game_phase = "pre-flop"
     st.session_state['continue'] = False
     st.session_state.state, st.session_state.player_id = st.session_state.game_info.reset()
@@ -255,7 +265,7 @@ def init():
     st.session_state.payoffs = [20, 20, 20, 20, 20, 20]
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
                                    [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    st.session_state.who_speak = player_list[5]
+    st.session_state.who_speak = player_list_raw[5]
     # st.session_state.recording = None
     # st.session_state['role_selected'] = False
     # st.session_state['selected_character'] = None
@@ -289,7 +299,6 @@ def new_game():
     # st.session_state.chat_history = []
     # st.session_state.recording = ''
 
-
 def user_step(state_info):
     return state_info['raw_legal_actions'][0]
 
@@ -320,7 +329,6 @@ translate_dict = {
     'fold': '弃牌',
     'check': '过牌',
 }
-
 
 def convert_cards_list(cards_list):
     # 遍历列表中的每个扑克牌表示，并调用convert_card_notation函数进行转换
