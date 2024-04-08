@@ -15,7 +15,7 @@ from agent2 import CustomizedAgent
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
 
 act_tuple = tuple['跟注', '加注', '弃牌']
-MAX_NEGOTIATE_ROUNDS = 3
+MAX_NEGOTIATE_ROUNDS = 2
 
 
 def set_audiences(participants: Sequence[AgentBase]):
@@ -71,7 +71,7 @@ class Npc(CustomizedAgent):
         super()._broadcast_to_audience(x)
         """Broadcast the input to all shadows."""
         ## todo 这里是将别的NPC的选择告知自己两个性格的agent
-        ## Msg(name=self.name, content='自定义消息')
+        Msg(name=self.name, content=f'npc的选择是:{x}')
         for agent in self.shadows:
             agent.observe(x)
 
@@ -84,11 +84,14 @@ class Npc(CustomizedAgent):
             for i in range(MAX_NEGOTIATE_ROUNDS):
                 for agent in self.shadows:
                     ## todo 这里可以自定义消息再进行一次提示
+                    msg = agent(Msg(name=self.name, content=f'现在是第()阶段，手牌是{agent.num_actions}'))
+                    print(f'msg===={msg}')
                     ## todo 接上，像这样msg = agent(Msg(name=self.name, content='自定义消息'))
                     msg = agent()
                     try:
                         ## todo 注意对回答格式的约束
-                        res = json.loads(find_first_json(msg.content))
+                        #res = json.loads(find_first_json(msg.content))
+                        res = json.loads(msg.content)
                         if res['agreement'] is True:
                             return res['action']
                     except JSONDecodeError:
