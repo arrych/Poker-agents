@@ -127,7 +127,7 @@ def game2():
 
 def step(game_info, state_info, player_id, action, trajectories):
     # Environment steps
-
+    #todo 如何获取合法的action？
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
     trajectories[player_id].append(action)
