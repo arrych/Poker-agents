@@ -14,7 +14,7 @@ from agentscope.prompt import PromptEngine, PromptType
 from agent2 import CustomizedAgent
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
 
-act_tuple = tuple['raise', 'call', 'fold']
+act_tuple = ('raise', 'call', 'fold')
 MAX_NEGOTIATE_ROUNDS = 2
 
 def set_audiences(participants: Sequence[AgentBase]):
@@ -99,11 +99,15 @@ class Npc(CustomizedAgent):
                         ## todo 注意对回答格式的约束
                         res = json.loads(find_first_json(msg.content))
                         #res = json.loads(msg.content)
-                        if res['agreement'] is True:
-                            return res['action']
+                        if res['agreement']:
+                            act_= res['action']
+                            action_ = act_tuple[act_ - 1]
+                            return action_
                     except JSONDecodeError:
                         for audience in self.shadows:
                             audience.forget_last_answer()
+        act_f = self.randomAgent.step(state)
+        print(f'act_f==={act_f}')
         return self.randomAgent.step(state)
 
 
