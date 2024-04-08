@@ -133,7 +133,7 @@ class CustomizedAgent(AgentBase):
         memory = self.memory.get_memory()
         if memory is None or len(memory) < 1:
             return
-        self.memory.delete(len(memory))
+        self.memory.delete(len(memory)-1)
 
     # 删除所有记忆
     def flush_memory(self):
