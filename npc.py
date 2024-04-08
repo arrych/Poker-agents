@@ -14,9 +14,8 @@ from agentscope.prompt import PromptEngine, PromptType
 from agent2 import CustomizedAgent
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
 
-act_tuple = tuple['跟注', '加注', '弃牌']
+act_tuple = tuple['raise', 'call', 'fold']
 MAX_NEGOTIATE_ROUNDS = 2
-
 
 def set_audiences(participants: Sequence[AgentBase]):
     """Reset the audience for agent in `self.participant`"""
@@ -62,6 +61,7 @@ class Npc(CustomizedAgent):
         """
         # return np.random.choice(list(state['legal_actions'].keys()))
         res = self.shadows_negotiate(state)
+        print(f'res_==={res}')
         ## todo 这里是对别的NPC玩家进行回答的地方，需要修改格式
         self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}'))  ## 将本次动作广播给所有听众
         return res
@@ -70,12 +70,15 @@ class Npc(CustomizedAgent):
         """Broadcast the input to all audiences."""
         super()._broadcast_to_audience(x)
         """Broadcast the input to all shadows."""
-        ## todo 这里是将别的NPC的选择告知自己两个性格的agent
-        Msg(name=self.name, content=f'npc的选择是:{x}')
         for agent in self.shadows:
             agent.observe(x)
 
     def shadows_negotiate(self, state):
+        game_info = st.session_state.game_info
+        state_raw_obs = state['raw_obs']
+        print(f'state_raw_obs:{state_raw_obs}')
+        hand = state_raw_obs['hand']
+        public_cards = state_raw_obs['public_cards']
         round_info = round.pre_flop_round  ##对局阶段
         if st.session_state['round_info'] is not None:
             round_info = st.session_state.round_info
@@ -84,14 +87,18 @@ class Npc(CustomizedAgent):
             for i in range(MAX_NEGOTIATE_ROUNDS):
                 for agent in self.shadows:
                     ## todo 这里可以自定义消息再进行一次提示
-                    msg = agent(Msg(name=self.name, content=f'现在是第()阶段，手牌是{agent.num_actions}'))
-                    print(f'msg===={msg}')
+                    msg = agent(Msg(name=self.name, content=f'现在是第()阶段，手牌是{hand}，公共牌是{public_cards},pre_flop阶段不可以弃牌，请按照如下的格式进行回答：'
+                          '{{\n'
+                          '    "thought": "你的想法",\n'
+                          '    "action": "只允许填数字，1,2,3。其中1代表raise，2代表call，3代表fold",\n'
+                          '    "agreement": "是否达成一致，True or False"\n'
+                          '}}'))
                     ## todo 接上，像这样msg = agent(Msg(name=self.name, content='自定义消息'))
-                    msg = agent()
+                    #msg = agent()
                     try:
                         ## todo 注意对回答格式的约束
-                        #res = json.loads(find_first_json(msg.content))
-                        res = json.loads(msg.content)
+                        res = json.loads(find_first_json(msg.content))
+                        #res = json.loads(msg.content)
                         if res['agreement'] is True:
                             return res['action']
                     except JSONDecodeError:
