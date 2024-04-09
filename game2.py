@@ -127,7 +127,6 @@ def game2():
 
 def step(game_info, state_info, player_id, action, trajectories):
     # Environment steps
-    #todo 如何获取合法的action？
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
     trajectories[player_id].append(action)
@@ -181,8 +180,8 @@ def show(game_info, state_info, player_id, trajectories):
 
     ability_menu = player_cols[4]
     ability_menu.write('你的能力')
-    ability_menu.toggle(label='读心术', key='read_mind')
-    ability_menu.toggle(label='透视眼', key='see_through')
+    ability_menu.toggle(label='读心术', key='read_mind' ,disabled=True)
+    ability_menu.toggle(label='透视眼', key='see_through', disabled=True)
     bet_statistic = player_cols[5]
     player = game_info.game.players[0]
     round.player_act(bet_statistic, player.in_chips*2, st.session_state.payoffs[0])
@@ -257,7 +256,7 @@ def init():
     st.session_state.payoffs = [20, 20, 20, 20, 20, 20]
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
                                    [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    st.session_state.who_speak = player_list_raw[5]
+    #st.session_state.who_speak = player_list_raw[5]
     # st.session_state.recording = None
     # st.session_state['role_selected'] = False
     # st.session_state['selected_character'] = None
@@ -333,7 +332,7 @@ def guilden_line():
         <div class="hint" style="background-color: rgba(255, 255, 0, 0.15); padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffcc00;">
             <p>🌟🌟 如果在游戏过程中发现问题或者有一些建议希望可以进行一下交流，我们会及时反馈。如果觉得不错点击一下小心心就更好啦!</p>
             <p>1：游戏已经升级成标准的德州扑克游戏,默认会有5个对手,其中一个随机操作的机器人,两个不同算法的机器人以及两个由multi-agent组成的机器人</p>
-            <p>2：目前游戏流程以及可以跑通体验(目前是2个随机机器人,3个算法机器人,multi-agent还在优化,马上上线!)</p>
+            <p>2：目前可以体验完整的游戏流程,但是没有更新聊天功能以及角色能力,如果想要获得更丰富的multi-agent体验.建议去玩简单版本</p>
             <p>🌟 使用模型分析需要一点时间,请耐心等待,如果好奇Agent分析内容可以点击读心术来查看其内心独白。</p>
         </div>
         """, unsafe_allow_html=True)
