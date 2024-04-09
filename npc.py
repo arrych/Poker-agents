@@ -14,7 +14,7 @@ from agentscope.prompt import PromptEngine, PromptType
 from agent2 import CustomizedAgent
 from rlcard.agents import LimitholdemHumanAgent as HumanAgent
 
-act_tuple = ('raise', 'call', 'fold')
+act_tuple = ('raise', 'call', 'fold', 'check')
 MAX_NEGOTIATE_ROUNDS = 2
 
 def set_audiences(participants: Sequence[AgentBase]):
@@ -76,6 +76,8 @@ class Npc(CustomizedAgent):
     def shadows_negotiate(self, state):
         game_info = st.session_state.game_info
         state_raw_obs = state['raw_obs']
+        state_legal_actions = state['raw_legal_actions']
+        print(f'state_legal_actions:{state_legal_actions}')
         print(f'state_raw_obs:{state_raw_obs}')
         hand = state_raw_obs['hand']
         public_cards = state_raw_obs['public_cards']
@@ -90,7 +92,7 @@ class Npc(CustomizedAgent):
                     msg = agent(Msg(name=self.name, content=f'现在是第()阶段，手牌是{hand}，公共牌是{public_cards},pre_flop阶段不可以弃牌，请按照如下的格式进行回答：'
                           '{{\n'
                           '    "thought": "你的想法",\n'
-                          '    "action": "只允许填数字，1,2,3。其中1代表raise，2代表call，3代表fold",\n'
+                          '    "action": "只允许填数字,并且只能从当前合法的动作中选择一个,目前的合法动作有{state_legal_actions},一定记住只能从前面的合法动作里选择一个动作,并根据后续提示转换成数字，1,2,3,4。其中1代表raise，2代表call，3代表fold,4表示check",\n'
                           '    "agreement": "是否达成一致，True or False"\n'
                           '}}'))
                     ## todo 接上，像这样msg = agent(Msg(name=self.name, content='自定义消息'))
