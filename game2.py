@@ -264,7 +264,7 @@ def init():
     st.session_state.payoffs = [20, 20, 20, 20, 20, 20]
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
                                    [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    st.session_state.who_speak = player_list_raw[5]
+    #st.session_state.who_speak = player_list_raw[5]
     # st.session_state.recording = None
     # st.session_state['role_selected'] = False
     # st.session_state['selected_character'] = None
