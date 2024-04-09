@@ -35,7 +35,7 @@ def find_first_json(text):
 
 class Npc(CustomizedAgent):
 
-    def __init__(self, name, avatar, num_actions, sys_prompt="", model_config_name='qwen_config', principal=100):
+    def __init__(self, name, avatar, num_actions, sys_prompt="", model_config_name='qwenMax', principal=100):
         super().__init__(name, sys_prompt=sys_prompt, model_config_name=model_config_name, num_actions=num_actions)
         self.engine = PromptEngine(self.model, prompt_type=PromptType.LIST)
         self.num_actions = num_actions
