@@ -50,8 +50,7 @@ class CustomizedAgent(AgentBase):
     def _broadcast_to_audience(self, x: dict) -> None:
         """Broadcast the input to all audiences which includes myself."""
         for agent in self._audience:
-            if agent is not self:
-                agent.observe(x)
+            agent.observe(x)
 
     def reply(self, x: dict = None) -> dict:
         # 将问题x（或者理解为用户提示）加入记忆

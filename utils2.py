@@ -45,7 +45,17 @@ class Card:
     isBack = False
 
     def __init__(self, suit, rank):
+        if suit == 'H':
+            suit = 'hearts'
+        elif suit == 'D':
+            suit = 'diamonds'
+        elif suit == 'C':
+            suit = 'clubs'
+        elif suit == 'S':
+            suit = 'spades'
         self.suit = suit
+        if rank not in ranks_list:
+            rank = '10'
         self.rank = rank
         self.rank_idx = ranks_list.index(rank)
         self.image_path = f'assets/cards/{suit}/{suit}{rank}.png'
