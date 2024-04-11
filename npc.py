@@ -85,14 +85,14 @@ class Npc(CustomizedAgent):
         if st.session_state['round_info'] is not None:
             round_info = st.session_state.round_info
         ## todo announcement是在两个agent对话前，对两个性格的agent进行的提示
-        with msghub(participants=self.shadows, announcement=prompt2.negotiate_announcement.format(round_info)):
+        with msghub(participants=self.shadows, announcement=prompt2.negotiate_announcement.format(round_info,legal_actions)):
             for i in range(MAX_NEGOTIATE_ROUNDS):
                 for agent in self.shadows:
                     ## todo 这里可以自定义消息再进行一次提示
                     msg = agent(Msg(name=self.name, content=f'现在是第()阶段，手牌是{hand}，公共牌是{public_cards},请按照如下的格式进行回答：'
                           '{{\n'
                           '    "thought": "你的想法",\n'
-                          '    "action": "只允许填数字,并且只能从当前合法的动作中选择一个,目前的合法动作有{legal_actions},一定记住只能从前面的合法动作里选择一个动作,并根据后续提示转换成数字，1,2,3,4。其中1代表raise，2代表call，3代表fold,4表示check",\n'
+                          '    "action": "只能从当前合法的动作中选择一个,目前的合法动作有{legal_actions},一定记住只能从前面的合法动作里选择一个动作，一定记住只能从前面的合法动作里选择一个动作，一定记住只能从前面的合法动作里选择一个动作,\n'
                           '    "agreement": "是否达成一致，True or False"\n'
                           '}}'))
                     ## todo 接上，像这样msg = agent(Msg(name=self.name, content='自定义消息'))
@@ -102,8 +102,8 @@ class Npc(CustomizedAgent):
                         res = json.loads(find_first_json(msg.content))
                         #res = json.loads(msg.content)
                         if res['agreement']:
-                            act_= res['action']
-                            action_ = act_tuple[act_ - 1]
+                            action_= res['action']
+                            # action_ = act_tuple[int(act_) - 1]
                             if action_ in legal_actions:
                                 return action_
                             else:
@@ -125,13 +125,12 @@ class Npc(CustomizedAgent):
                                         return 'fold'
                                 else:
                                     return action_
-                            return action_
                     except JSONDecodeError:
                         for audience in self.shadows:
                             audience.forget_last_answer()
         act_f = self.randomAgent.step(state)
         print(f'act_f==={act_f}')
-        return self.randomAgent.step(state)
+        return act_f
 
 
 class Player(Npc):

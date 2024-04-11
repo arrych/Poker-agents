@@ -5,7 +5,7 @@
         "model_name": "qwen-max2",
         "api_key": "sk-7e2bd68f117f44fc9c9f24563233b443",
         "generate_args": {
-            "temperature": 0.5
+            "temperature": 0.4
         },
         "messages_key": "input"
     }

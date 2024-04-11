@@ -53,12 +53,6 @@ card_deck = st.session_state.card_deck = CardDeck()
 jackpot = st.session_state.jackpot = 0
 
 
-
-# players = agentscope.init(
-#     model_configs="./config/model_configs.json"
-# )
-
-
 def game2():
 
     st.session_state.round = round.pre_flop_round  # 控制阶段
@@ -67,10 +61,8 @@ def game2():
     if 'game_phase' not in st.session_state:
         init()
 
-    guilden_line()
+    gulden_line()
     game_info = st.session_state.game_info
-
-    round_info = game_info.game.round
     st.session_state.jackpot = 0
     st.session_state.community_cards = convert_cards_list(game_info.game.public_cards)
     state_info = st.session_state.state
@@ -80,8 +72,6 @@ def game2():
 
     # todo 翻译日志
     trajectories[player_id].append(state_info)
-    # st.write(state_info)
-    #st.write("player_id:" + str(player_id))
     st.session_state.action = 'check'
     st.session_state.hand_cards[0] = convert_cards_list(game_info.game.players[0].hand)
     if st.sidebar.button("重新开始!"):
@@ -98,13 +88,12 @@ def game2():
             #st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
             # todo 了解action为什么会越界 是不是应该取所有的action
             st.session_state.action = action
-            if player_id == 1 or player_id == 2 or player_id == 5:
+            if player_id == 1 or player_id == 2 or player_id == 4 or player_id == 5:
                st.session_state.broadcast_npc.step2(st.session_state.player_list[player_id]['name'], action)
 
             player = game_info.game.players[player_id]
             step(game_info, state_info, player_id, action, trajectories)
             st.session_state.agent_actions[player_id-1] = [st.session_state.action, player.in_chips*2]
-            #st.write(f"players_action: {st.session_state.agent_actions}")
             st.session_state.hand_cards[player_id] = convert_cards_list(player.hand)
 
     if game_info.is_over():
@@ -127,6 +116,7 @@ def game2():
 
 def step(game_info, state_info, player_id, action, trajectories):
     # Environment steps
+
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
     trajectories[player_id].append(action)
@@ -140,23 +130,7 @@ def step(game_info, state_info, player_id, action, trajectories):
         trajectories[player_id].append(state_info)
 
 def show(game_info, state_info, player_id, trajectories):
-    with st.sidebar:
-        for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
-            row = st.container(border=True)
-            cols = row.columns(4)
-            cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
-            agent_action = st.session_state.agent_actions[i]
-            if agent_action[0] == 'fold':
-                cols[1].image(st.session_state.hand_cards[i][0].image_path)  # NPC手牌图片
-                cols[2].image(st.session_state.hand_cards[i][1].image_path)  # NPC手牌图片
-            else:
-                cols[1].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
-                cols[2].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
 
-            if agent_action[0] != '':
-                round.npc_act(npc, cols[3], agent_action[0], agent_action[1])
-
-    time.sleep(1)
     canvas = st.columns(1)[0]
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
@@ -175,16 +149,32 @@ def show(game_info, state_info, player_id, trajectories):
     player_cols[2].image(st.session_state.hand_cards[0][1].image_path)  # NPC手牌图片
 
     operate_menu = player_cols[3]
-    # operate_menu.radio("你的行动：", options=['跟注', '加注', '弃牌'])
-    # round.show_button(operate_menu, player_id)
 
     ability_menu = player_cols[4]
     ability_menu.write('你的能力')
-    ability_menu.toggle(label='读心术', key='read_mind' ,disabled=True)
+    ability_menu.toggle(label='读心术', key='read_mind',disabled=True)
     ability_menu.toggle(label='透视眼', key='see_through', disabled=True)
     bet_statistic = player_cols[5]
     player = game_info.game.players[0]
     round.player_act(bet_statistic, player.in_chips*2, st.session_state.payoffs[0])
+
+    with st.sidebar:
+        for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
+            row = st.container(border=True)
+            cols = row.columns(4)
+
+            cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
+            agent_action = st.session_state.agent_actions[i]
+            if agent_action[0] == 'fold':
+                cols[1].image(st.session_state.hand_cards[i][0].image_path)  # NPC手牌图片
+                cols[2].image(st.session_state.hand_cards[i][1].image_path)  # NPC手牌图片
+            else:
+                cols[1].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
+                cols[2].image(Card.BACK_IMAGE_PATH)  # NPC手牌图片
+
+            if agent_action[0] != '':
+                round.npc_act(npc, cols[3], agent_action[0], agent_action[1])
+
     if st.session_state['continue']:
         legal_action = state_info['raw_legal_actions']
         with st.spinner('Please wait...'):
@@ -290,6 +280,7 @@ def new_game():
     # st.session_state.chat_history = []
     # st.session_state.recording = ''
 
+
 def user_step(state_info):
     return state_info['raw_legal_actions'][0]
 
@@ -321,13 +312,15 @@ translate_dict = {
     'check': '过牌',
 }
 
+
 def convert_cards_list(cards_list):
     # 遍历列表中的每个扑克牌表示，并调用convert_card_notation函数进行转换
     converted_list = [convert_card_notation(card) for card in cards_list]
     return converted_list
 
 
-def guilden_line():
+@st.cache_data
+def gulden_line():
     st.expander("展示游戏规则").markdown("""
         <div class="hint" style="background-color: rgba(255, 255, 0, 0.15); padding: 10px; margin: 10px 0; border-radius: 5px; border: 1px solid #ffcc00;">
             <p>🌟🌟 如果在游戏过程中发现问题或者有一些建议希望可以进行一下交流，我们会及时反馈。如果觉得不错点击一下小心心就更好啦!</p>
