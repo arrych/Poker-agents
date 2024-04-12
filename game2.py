@@ -1,7 +1,7 @@
 import streamlit as st
 
 import rlcard
-from agent2_rule import LimitholdemRuleAgentV1
+from agent2_rule import LimitholdemRuleAgentV1, LimitholdemRuleAgentV2
 import agentscope
 from agent2_rule import RandomAgent
 from npc import Npc, set_audiences, Player
@@ -69,7 +69,7 @@ def game2():
     player_id = st.session_state.player_id
 
     trajectories = [[] for _ in range(game_info.num_players)]
-
+    st.session_state.curr_payoffs[game_info.game.round_counter] = sum(game_info.game.round.raised)*2
     # todo 翻译日志
     trajectories[player_id].append(state_info)
     st.session_state.action = 'check'
@@ -88,7 +88,7 @@ def game2():
             #st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
             # todo 了解action为什么会越界 是不是应该取所有的action
             st.session_state.action = action
-            if player_id == 1 or player_id == 2 or player_id == 4 or player_id == 5:
+            if player_id == 1 or player_id == 2 or player_id == 3 or player_id == 5:
                st.session_state.broadcast_npc.step2(st.session_state.player_list[player_id]['name'], action)
 
             player = game_info.game.players[player_id]
@@ -129,13 +129,14 @@ def step(game_info, state_info, player_id, action, trajectories):
     if not game_info.game.is_over():
         trajectories[player_id].append(state_info)
 
+
 def show(game_info, state_info, player_id, trajectories):
 
     canvas = st.columns(1)[0]
     # 第二行：公共信息区
     round.show_game_round_step(canvas)
     canvas.subheader(
-        f"场上奖池累积至{sum(game_info.game.round.raised)*2}积分，现在轮到{st.session_state.player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
+        f"本轮奖池累积至{sum(game_info.game.round.raised)*2}积分,桌面总积分至{sum(st.session_state.curr_payoffs)},现在轮到{st.session_state.player_list[player_id]['name']}行动……")   # 使用分隔线创建视觉上的行分隔
     row = canvas.container(border=True)
     row.caption("公共牌")
     round.show_community_cards(row)
@@ -165,7 +166,7 @@ def show(game_info, state_info, player_id, trajectories):
 
             cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
             agent_action = st.session_state.agent_actions[i]
-            if agent_action[0] == 'fold':
+            if agent_action[0] == 'fold' or game_info.game.is_over():
                 cols[1].image(st.session_state.hand_cards[i][0].image_path)  # NPC手牌图片
                 cols[2].image(st.session_state.hand_cards[i][1].image_path)  # NPC手牌图片
             else:
@@ -218,9 +219,10 @@ def init():
     #               num_actions=game_info.num_actions)
     agent_1 = LimitholdemRuleAgentV1()
     agent_2 = LimitholdemRuleAgentV1()
-    agent_3 = Npc(name=player_list_raw[3]['name'],
-                  avatar=player_list_raw[3]['avatar'],
-                  num_actions=game_info.num_actions)
+    agent_3 = LimitholdemRuleAgentV2()
+    # agent_3 = Npc(name=player_list_raw[3]['name'],
+    #               avatar=player_list_raw[3]['avatar'],
+    #               num_actions=game_info.num_actions)
     agent_4 = Npc(name=player_list_raw[4]['name'],
                   avatar=player_list_raw[4]['avatar'],
                   num_actions=game_info.num_actions)
@@ -229,7 +231,7 @@ def init():
     #               num_actions=game_info.num_actions)
     agent_5 = RandomAgent(num_actions=game_info.num_actions)
 
-    set_audiences(participants=[player, agent_3, agent_4, st.session_state.broadcast_npc])
+    set_audiences(participants=[player, agent_4, st.session_state.broadcast_npc])
     game_info.set_agents([
         player,
         agent_1, agent_2, agent_3, agent_4, agent_5
@@ -243,13 +245,10 @@ def init():
     st.session_state['continue'] = False
     st.session_state.state, st.session_state.player_id = st.session_state.game_info.reset()
     st.session_state.agent_actions = [['', 0], ['', 0], ['', 0], ['', 0], ['', 0]]  # index=0 为动作 index=1 为积分
-    st.session_state.payoffs = [20, 20, 20, 20, 20, 20]
+    st.session_state.payoffs = [120, 120, 120, 120, 120, 120]
+    st.session_state.curr_payoffs = [0, 0, 0, 0, 0, 0]
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
                                    [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    #st.session_state.who_speak = player_list_raw[5]
-    # st.session_state.recording = None
-    # st.session_state['role_selected'] = False
-    # st.session_state['selected_character'] = None
     st.session_state.perspective_eye = False
     st.session_state.mind_reading = False
     pass
@@ -261,24 +260,8 @@ def new_game():
     st.session_state.round_info = st.session_state.game_info.game.round
     st.session_state.agent_actions = [['', 0], ['', 0], ['', 0], ['', 0], ['', 0]]  # index=0 为动作 index=1 为积分
     st.session_state.hand_cards = [[BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()],
-                                   [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]  # 说话人
-    # p = Porker()
-    # st.session_state.porker = p
-    # p.LicensingCards()  # 发牌
-    # st.session_state.round = 1
-    # st.session_state.game += 1
-    # st.session_state.agent_card_name = p.AgentCardName
-    # st.session_state.agent_card_id = p.AgentCardId
-    # st.session_state.your_card_name = p.YourCardName
-    # st.session_state.your_card_id = p.YourCardId
-    # st.session_state.community_card_name = p.CommunityCardName
-    # st.session_state.community_card_id = p.CommunityCardId
-    # init -> start -> next -> end
-    # st.session_state.game_state = "start"
-    # st.session_state.points.InitBet()  # 每局开始投入1个积分打底
-    # # 聊天记录
-    # st.session_state.chat_history = []
-    # st.session_state.recording = ''
+                                   [BackCard(), BackCard()], [BackCard(), BackCard()], [BackCard(), BackCard()]]
+    st.session_state.curr_payoffs = [0, 0, 0, 0, 0, 0]
 
 
 def user_step(state_info):
