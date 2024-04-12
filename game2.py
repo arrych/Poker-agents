@@ -87,6 +87,7 @@ def game2():
             action = game_info.agents[player_id].step(state_info)
             #st.write(f"action: {action}  -> state_info['raw_legal_actions']={state_info['raw_legal_actions']}")
             # todo 了解action为什么会越界 是不是应该取所有的action
+            print(f'action={action}')
             st.session_state.action = action
             if player_id == 1 or player_id == 2 or player_id == 3 or player_id == 5:
                st.session_state.broadcast_npc.step2(st.session_state.player_list[player_id]['name'], action)
@@ -120,7 +121,6 @@ def step(game_info, state_info, player_id, action, trajectories):
     next_state, next_player_id = game_info.step(action, game_info.agents[player_id].use_raw)
     # Save action
     trajectories[player_id].append(action)
-
     # Set the state and player
     st.session_state.state = next_state
     st.session_state.player_id = next_player_id
@@ -161,11 +161,12 @@ def show(game_info, state_info, player_id, trajectories):
 
     with st.sidebar:
         for i, npc in enumerate(st.session_state.player_list[1:]):  # 展示后五个NPC
+            i = i + 1
             row = st.container(border=True)
             cols = row.columns(4)
 
             cols[0].image(npc['avatar'], caption=npc['name'])  # NPC头像和姓名
-            agent_action = st.session_state.agent_actions[i]
+            agent_action = st.session_state.agent_actions[i-1]
             if agent_action[0] == 'fold' or game_info.game.is_over():
                 cols[1].image(st.session_state.hand_cards[i][0].image_path)  # NPC手牌图片
                 cols[2].image(st.session_state.hand_cards[i][1].image_path)  # NPC手牌图片

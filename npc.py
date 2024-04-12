@@ -64,9 +64,12 @@ class Npc(CustomizedAgent):
         """
         # return np.random.choice(list(state['legal_actions'].keys()))
         res = self.shadows_negotiate(state)
+
         #print(f'res_==={res}')
         ## todo 这里是对别的NPC玩家进行回答的地方，需要修改格式
         self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}'))  ## 将本次动作广播给所有听众
+        if res == 'fold':
+            self.fold = True
         return res
 
     def _broadcast_to_audience(self, x: dict) -> None:

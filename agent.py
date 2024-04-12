@@ -9,7 +9,7 @@ agentscope.init(
         {
             "model_type": "tongyi_chat",
             "config_name": "qwenMax",
-            "model_name": "qwen-max-longcontext",
+            "model_name": "qwen-max",
             "api_key": "sk-d413e323467b438cb83c9222db25df62",
             "generate_args": {
                 "temperature": 0.5,

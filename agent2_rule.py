@@ -25,6 +25,7 @@ class LimitholdemRuleAgentV1(object):
         hand = state['hand']
         public_cards = state['public_cards']
         action = 'fold'
+        print(f"state['public_cards']={state['public_cards']}")
         # When having only 2 hand cards at the game start, choose fold to drop terrible cards:
         # Acceptable hand cards:
         # Pairs
@@ -33,17 +34,20 @@ class LimitholdemRuleAgentV1(object):
         # KQ, KJ, QJ, JT
         # Fold all hand types except those mentioned above to save money
         if len(public_cards) == 0:
+            print("test!!!!!")
+            print(f"hand[0][1]={hand[0][1]}    hand[1][1]={hand[1][1]}")
             if hand[0][1] == hand[1][1]:
                 action = 'raise'
             elif hand[0][1] == 'A' or hand[1][1] == 'A':
-                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1],
-                                                                                                 hand[1][1]] or 'T' in [hand[0][1], hand[1][1]]:
+                if 'K' in [hand[0][1], hand[1][1]] or 'Q' in [hand[0][1], hand[1][1]] or 'J' in [hand[0][1],hand[1][1]] or 'T' in [hand[0][1], hand[1][1]]:
                     action = 'raise'
                 elif hand[0][0] == hand[1][0]:
                     action = 'raise'
             elif hand[0][1] == 'K' or hand[0][1] == 'Q' or hand[0][1] == 'J' or hand[0][1] == 'T':
                 if hand[1][1] == 'K' or hand[1][1] == 'Q' or hand[1][1] == 'J' or hand[1][1] == 'T':
                     action = 'raise'
+                else:
+                    action = 'call'
         if len(public_cards) == 3:
             public_cards_ranks = ['A', 'A', 'A']
             public_cards_flush = ['S', 'S', 'S']

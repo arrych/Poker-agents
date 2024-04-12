@@ -45,12 +45,14 @@ class CustomizedAgent(AgentBase):
         super().__init__(name, sys_prompt=sys_prompt, model_config_name=model_config_name, use_memory=True)
         self.engine = PromptEngine(self.model, prompt_type=PromptType.LIST)
         self.use_raw = True
+        self.fold = False
         self.num_actions = num_actions
 
     def _broadcast_to_audience(self, x: dict) -> None:
         """Broadcast the input to all audiences which includes myself."""
         for agent in self._audience:
-            agent.observe(x)
+            if not self.fold:
+                agent.observe(x)
 
     def reply(self, x: dict = None) -> dict:
         # 将问题x（或者理解为用户提示）加入记忆
