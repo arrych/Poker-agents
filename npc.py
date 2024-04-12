@@ -64,7 +64,7 @@ class Npc(CustomizedAgent):
         """
         # return np.random.choice(list(state['legal_actions'].keys()))
         res = self.shadows_negotiate(state)
-        print(f'res_==={res}')
+        #print(f'res_==={res}')
         ## todo 这里是对别的NPC玩家进行回答的地方，需要修改格式
         self._broadcast_to_audience(Msg(name=self.name, content=f'我选择{res}'))  ## 将本次动作广播给所有听众
         return res
@@ -87,8 +87,8 @@ class Npc(CustomizedAgent):
     def shadows_negotiate(self, state):
         state_raw_obs = state['raw_obs']
         legal_actions = state['raw_legal_actions']
-        print(f'state_legal_actions:{legal_actions}')
-        print(f'state_raw_obs:{state_raw_obs}')
+        #print(f'state_legal_actions:{legal_actions}')
+        #print(f'state_raw_obs:{state_raw_obs}')
         hand = [Card(card[0], card[1]).description for card in state_raw_obs['hand']]
         public_cards = [Card(card[0], card[1]).description for card in state_raw_obs['public_cards']]
         my_chip = state_raw_obs['my_chips']
@@ -101,7 +101,7 @@ class Npc(CustomizedAgent):
             round_info = round.turn_round
         else:
             round_info = round.river_round
-        print(f'现在是{round_info}阶段')
+        #print(f'现在是{round_info}阶段')
         max_card_prompt = ''
         if round_index > 0:
             cards = [Card(card[0], card[1]) for card in state_raw_obs['hand'] + state_raw_obs['public_cards']]
